@@ -201,9 +201,9 @@ const UploadRxBanner = () => {
         insertedId = insertedData[0].id;
       }
 
-      // Fallback: if extra columns don't exist yet, try with a reduced (but still name-inclusive) payload
+      // Fallback: if extra columns don't exist yet, try with a truly minimal payload
       if (dbError && (dbError.code === 'PGRST204' || dbError.message?.includes('Could not find'))) {
-        console.warn('[UploadRx] STEP 3 — Extra columns missing. Trying reduced payload. Run supabase_schema.sql!');
+        console.warn('[UploadRx] STEP 3 — Extra columns missing. Trying truly minimal payload. Run supabase_schema.sql!');
         const { data: minData, error: minErr } = await supabase
           .from('prescriptions')
           .insert({
@@ -211,9 +211,6 @@ const UploadRxBanner = () => {
             image_url:     publicUrl,
             status:        'pending',
             created_at:    new Date().toISOString(),
-            customer_name: customerName.trim(),
-            phone:         phone.replace(/\D/g, '').substring(0, 20),
-            reference_id:  refId,
           })
           .select('id');
         dbError = minErr;
