@@ -43,12 +43,22 @@ const AppContent = () => {
   const [isLoading, setIsLoading] = useState(true);
   const { openLogin, openRegister, openForgotPassword, openResetPassword, openCompleteProfile } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
+    const authCallback = params.get('auth_callback');
     const authType = params.get('auth');
     const verified = params.get('verified');
     const reset = params.get('reset');
+
+    if (authCallback === 'true') {
+      const newParams = new URLSearchParams(params);
+      newParams.delete('auth_callback');
+      const searchStr = newParams.toString() ? '?' + newParams.toString() : '';
+      navigate('/auth/callback' + searchStr + location.hash, { replace: true });
+      return;
+    }
 
     if (verified === 'true') {
       openLogin();
@@ -73,7 +83,7 @@ const AppContent = () => {
       openCompleteProfile(from);
       window.history.replaceState({}, '', window.location.pathname);
     }
-  }, [location.search, openLogin, openRegister, openForgotPassword, openResetPassword, openCompleteProfile]);
+  }, [location.search, navigate, openLogin, openRegister, openForgotPassword, openResetPassword, openCompleteProfile]);
 
   /* ── PWA State ──────────────────────────────────────────── */
   const [pwaPrompt,    setPwaPrompt]  = useState(null);

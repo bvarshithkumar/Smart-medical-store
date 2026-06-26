@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Authenticating...</title>
+  <script>
+    // Preserve query parameters and hash fragment, then redirect to root app
+    const searchParams = new URLSearchParams(window.location.search);
+    searchParams.set('auth_callback', 'true');
+    const targetUrl = window.location.origin + '/?' + searchParams.toString() + window.location.hash;
+    window.location.replace(targetUrl);
+  </script>
+</head>
+<body>
+  <div style="font-family: system-ui, -apple-system, sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; background-color: #f8fafc; color: #1e293b;">
+    <div style="font-weight: 600; font-size: 16px; margin-bottom: 8px;">Completing sign-in...</div>
+    <div style="font-size: 14px; color: #64748b;">Please wait while we redirect you.</div>
+  </div>
+</body>
+</html>
