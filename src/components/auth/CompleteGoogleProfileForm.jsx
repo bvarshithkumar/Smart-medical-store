@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Phone, MapPin, CheckCircle2, Loader, ArrowRight } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
@@ -10,6 +11,7 @@ import { parsePhoneNumberFromString } from 'libphonenumber-js';
 export default function CompleteGoogleProfileForm() {
   const { supabaseUser, user, updateProfile, authModalData, closeAuthModal } = useAuth();
   const { showToast } = useCart();
+  const navigate = useNavigate();
 
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
@@ -81,8 +83,8 @@ export default function CompleteGoogleProfileForm() {
       closeAuthModal();
 
       const destination = authModalData?.from || '/profile';
-      // Use a hard redirect to avoid React Router / ProtectedRoute race conditions
-      window.location.replace(destination);
+      // Use React Router navigate — supabaseUser is already set so ProtectedRoute passes through immediately
+      navigate(destination, { replace: true });
     } catch (err) {
       console.error('[CompleteGoogleProfileForm] upsert error:', err);
       setError(err.message || 'Failed to save profile. Please try again.');
