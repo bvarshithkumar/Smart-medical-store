@@ -14,6 +14,8 @@ export default function CompleteGoogleProfileForm() {
   const [fullName, setFullName] = useState('');
   const [phone, setPhone] = useState('');
   const [address, setAddress] = useState('');
+  // Store selected country so we can reconstruct the full international number for validation
+  const [selectedCountry, setSelectedCountry] = useState({ dialCode: '91', iso2: 'in', name: 'India' });
 
   const [busy, setBusy] = useState(false);
   const [errorMsg, setError] = useState('');
@@ -32,14 +34,18 @@ export default function CompleteGoogleProfileForm() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setPhoneError('');
 
-    const phoneNumberObject = parsePhoneNumberFromString(phone);
-    if (!phoneNumberObject || !phoneNumberObject.isValid()) {
+    // Reconstruct full international number since disableDialCodeAndPrefix=true stores only local digits
+    const localDigits = phone.replace(/\D/g, '');
+    const fullNumber = `+${selectedCountry.dialCode}${localDigits}`;
+    const phoneNumberObject = parsePhoneNumberFromString(fullNumber);
+    if (!localDigits || !phoneNumberObject || !phoneNumberObject.isValid()) {
       setPhoneError('Please enter a valid mobile number.');
       setError('Please enter a valid mobile number.');
       return;
     }
-    const cleanPhone = phoneNumberObject.number.replace(/\D/g, '');
+    const cleanPhone = phoneNumberObject.number;
 
     setBusy(true);
     try {
@@ -128,15 +134,17 @@ export default function CompleteGoogleProfileForm() {
             className={phoneError ? 'has-error' : ''}
             onChange={(value, meta) => {
               setPhone(value);
-              
-              // Live inline validation
+              if (meta?.country) setSelectedCountry(meta.country);
+
+              // Live inline validation — reconstruct full international number
               const digits = value.replace(/\D/g, '');
-              const dialCode = meta.country?.dialCode || '';
-              
-              if (digits.length > dialCode.length) {
-                const parsed = parsePhoneNumberFromString(value);
+              const dialCode = meta?.country?.dialCode || selectedCountry.dialCode || '91';
+
+              if (digits.length > 0) {
+                const fullNumber = `+${dialCode}${digits}`;
+                const parsed = parsePhoneNumberFromString(fullNumber);
                 if (!parsed || !parsed.isValid()) {
-                  setPhoneError(`Please enter a valid mobile number for ${meta.country?.name || 'the selected country'}.`);
+                  setPhoneError(`Please enter a valid mobile number for ${meta?.country?.name || 'the selected country'}.`);
                 } else {
                   setPhoneError('');
                 }
