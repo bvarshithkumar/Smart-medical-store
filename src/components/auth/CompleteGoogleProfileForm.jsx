@@ -70,10 +70,17 @@ export default function CompleteGoogleProfileForm() {
       });
 
       showToast('Profile completed! Welcome to SVMS. 🎉', 'OK');
+
+      // Clear any lingering auth query params before closing modal
+      window.history.replaceState({}, '', window.location.pathname);
+
       closeAuthModal();
 
       const destination = authModalData?.from || '/profile';
-      navigate(destination, { replace: true });
+      // Short delay so the modal closing animation completes before navigating
+      setTimeout(() => {
+        navigate(destination, { replace: true });
+      }, 150);
     } catch (err) {
       console.error('[CompleteGoogleProfileForm] upsert error:', err);
       setError(err.message || 'Failed to save profile. Please try again.');
