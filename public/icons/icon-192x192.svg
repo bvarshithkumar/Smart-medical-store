@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="192" height="192" viewBox="0 0 192 192" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgGrad192" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a56db;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0f3a9e;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="crossGrad192" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ffffff;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#e0e7ff;stop-opacity:1" />
+    </linearGradient>
+    <clipPath id="roundRect192">
+      <rect width="192" height="192" rx="35" ry="35"/>
+    </clipPath>
+    <clipPath id="crossClip192">
+      <!-- Vertical bar -->
+      <rect x="69" y="10" 
+            width="54" height="173" 
+            rx="13" />
+      <!-- Horizontal bar -->
+      <rect x="10" y="69" 
+            width="173" height="54" 
+            rx="13" />
+    </clipPath>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="192" height="192" rx="35" ry="35" fill="url(#bgGrad192)"/>
+  
+  <!-- Cross shape (white) -->
+  <g clip-path="url(#crossClip192)">
+    <rect width="192" height="192" fill="white" opacity="0.95"/>
+  </g>
+  
+  <!-- Blue S-curve accent on the cross -->
+  <path 
+    d="M 101 17 
+       C 101 17, 
+         142 48, 
+         115 86 
+       C 88 125, 
+         125 152, 
+         110 175"
+    stroke="#1a56db" 
+    stroke-width="11" 
+    stroke-linecap="round" 
+    fill="none"
+    opacity="0.9"
+    clip-path="url(#crossClip192)"
+  />
+  
+  <!-- SVMS text label at bottom (only for larger icons) -->
+  
+  <text 
+    x="96" 
+    y="179" 
+    text-anchor="middle" 
+    font-family="Arial, Helvetica, sans-serif" 
+    font-size="16" 
+    font-weight="800" 
+    fill="white" 
+    opacity="0.9"
+    letter-spacing="2"
+  >SVMS</text>
+  
+</svg>

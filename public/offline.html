@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>You're Offline – Sri Venkateshwara Medical Store</title>
+  <link rel="icon" type="image/svg+xml" href="/icons/icon-192x192.svg" />
+  <meta name="theme-color" content="#1a56db" />
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --blue-primary: #1a56db;
+      --blue-dark: #1140a8;
+      --blue-light: #3b82f6;
+      --navy: #0f172a;
+      --navy-mid: #1e293b;
+      --slate: #334155;
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      --border: rgba(255,255,255,0.08);
+      --glass: rgba(255,255,255,0.05);
+    }
+
+    html, body {
+      height: 100%;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--navy);
+      color: var(--text-main);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 24px;
+      background: 
+        radial-gradient(ellipse at 20% 20%, rgba(26,86,219,0.25) 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 80%, rgba(59,130,246,0.15) 0%, transparent 50%),
+        var(--navy);
+    }
+
+    .offline-card {
+      width: 100%;
+      max-width: 520px;
+      background: var(--glass);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 48px 40px;
+      text-align: center;
+      backdrop-filter: blur(20px);
+      animation: slideUp 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+    }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(40px) scale(0.95); }
+      to   { opacity: 1; transform: translateY(0)    scale(1);    }
+    }
+
+    .offline-icon-wrap {
+      width: 96px;
+      height: 96px;
+      margin: 0 auto 28px;
+      background: linear-gradient(135deg, var(--blue-primary), var(--blue-dark));
+      border-radius: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 8px 32px rgba(26,86,219,0.4);
+      animation: pulse 3s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 8px 32px rgba(26,86,219,0.4); }
+      50%       { box-shadow: 0 8px 48px rgba(26,86,219,0.7); }
+    }
+
+    .offline-icon {
+      width: 52px;
+      height: 52px;
+      fill: none;
+      stroke: white;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .store-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(26,86,219,0.15);
+      border: 1px solid rgba(26,86,219,0.3);
+      border-radius: 100px;
+      padding: 6px 16px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--blue-light);
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      margin-bottom: 20px;
+    }
+
+    .offline-title {
+      font-size: 28px;
+      font-weight: 800;
+      color: var(--text-main);
+      letter-spacing: -0.5px;
+      margin-bottom: 12px;
+    }
+
+    .offline-subtitle {
+      font-size: 15px;
+      color: var(--text-muted);
+      line-height: 1.7;
+      margin-bottom: 36px;
+    }
+
+    .offline-subtitle strong {
+      color: var(--text-main);
+      font-weight: 600;
+    }
+
+    /* Cached pages section */
+    .cached-section {
+      background: var(--glass);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 28px;
+      text-align: left;
+    }
+
+    .cached-title {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-muted);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 14px;
+    }
+
+    .cached-links {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .cached-link {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 12px;
+      background: rgba(26,86,219,0.1);
+      border: 1px solid rgba(26,86,219,0.15);
+      border-radius: 10px;
+      color: var(--text-main);
+      text-decoration: none;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .cached-link:hover {
+      background: rgba(26,86,219,0.2);
+      border-color: rgba(26,86,219,0.35);
+      transform: translateX(4px);
+    }
+
+    .cached-link-icon {
+      width: 32px;
+      height: 32px;
+      background: rgba(26,86,219,0.2);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+
+    /* Retry button */
+    .retry-btn {
+      width: 100%;
+      padding: 16px 24px;
+      background: linear-gradient(135deg, var(--blue-primary), var(--blue-dark));
+      color: white;
+      font-family: inherit;
+      font-size: 16px;
+      font-weight: 700;
+      border: none;
+      border-radius: 14px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      letter-spacing: 0.2px;
+      box-shadow: 0 4px 24px rgba(26,86,219,0.4);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .retry-btn::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: rgba(255,255,255,0.1);
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    .retry-btn:hover::before { opacity: 1; }
+    .retry-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 32px rgba(26,86,219,0.5); }
+    .retry-btn:active { transform: translateY(0); }
+
+    .retry-btn.loading {
+      pointer-events: none;
+      opacity: 0.8;
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 18px;
+      height: 18px;
+      border: 2.5px solid rgba(255,255,255,0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      vertical-align: middle;
+      margin-right: 8px;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .store-info {
+      margin-top: 28px;
+      padding: 16px;
+      background: rgba(15,23,42,0.6);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+    }
+
+    .store-info-title {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-weight: 600;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    .store-info-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    .store-info-row:last-child { margin-bottom: 0; }
+    .store-info-row span:first-child { font-size: 16px; }
+
+    .status-bar {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 24px;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      background: #ef4444;
+      border-radius: 50%;
+      animation: blink 1.5s ease-in-out infinite;
+    }
+
+    .status-dot.online { background: #22c55e; animation: none; }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.3; }
+    }
+
+    @media (max-width: 480px) {
+      .offline-card { padding: 32px 24px; }
+      .offline-title { font-size: 22px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="offline-card">
+    <div class="offline-icon-wrap">
+      <svg class="offline-icon" viewBox="0 0 24 24">
+        <path d="M1 6s4-4 11-4 11 4 11 4"/>
+        <path d="M5 10s2.5-2.5 7-2.5 7 2.5 7 2.5"/>
+        <path d="M9 14s1-1 3-1 3 1 3 1"/>
+        <line x1="1" y1="1" x2="23" y2="23"/>
+      </svg>
+    </div>
+
+    <div class="store-badge">
+      <span>📍</span>
+      Sri Venkateshwara Medical Store
+    </div>
+
+    <h1 class="offline-title">You're Offline</h1>
+    <p class="offline-subtitle">
+      No internet connection detected. Don't worry — 
+      <strong>some content is still available</strong> from your last visit.
+    </p>
+
+    <div class="cached-section">
+      <div class="cached-title">📦 Available Offline</div>
+      <div class="cached-links">
+        <a href="/" class="cached-link">
+          <div class="cached-link-icon">🏠</div>
+          <div>
+            <div style="font-weight:600">Home Page</div>
+            <div style="font-size:12px;color:#94a3b8;margin-top:2px">Store information & services</div>
+          </div>
+        </a>
+        <a href="/#store-info" class="cached-link">
+          <div class="cached-link-icon">🏥</div>
+          <div>
+            <div style="font-weight:600">Store Information</div>
+            <div style="font-size:12px;color:#94a3b8;margin-top:2px">Address, hours & contact</div>
+          </div>
+        </a>
+        <a href="/#contact" class="cached-link">
+          <div class="cached-link-icon">📞</div>
+          <div>
+            <div style="font-weight:600">Contact Details</div>
+            <div style="font-size:12px;color:#94a3b8;margin-top:2px">Phone, WhatsApp & location</div>
+          </div>
+        </a>
+      </div>
+    </div>
+
+    <button class="retry-btn" onclick="retryConnection(this)" id="retryBtn">
+      🔄 Try Again
+    </button>
+
+    <div class="store-info">
+      <div class="store-info-title">📍 Store Details (Always Available)</div>
+      <div class="store-info-row">
+        <span>🏥</span>
+        <span>Sri Venkateshwara Medical & General Stores</span>
+      </div>
+      <div class="store-info-row">
+        <span>📍</span>
+        <span>Gachibowli, Hyderabad – 500032</span>
+      </div>
+      <div class="store-info-row">
+        <span>📞</span>
+        <span>+91 98765 43210</span>
+      </div>
+      <div class="store-info-row">
+        <span>🕐</span>
+        <span>Mon–Sat: 8:00 AM – 10:00 PM</span>
+      </div>
+    </div>
+
+    <div class="status-bar">
+      <div class="status-dot" id="statusDot"></div>
+      <span id="statusText">No internet connection</span>
+    </div>
+  </div>
+
+  <script>
+    function retryConnection(btn) {
+      btn.classList.add('loading');
+      btn.innerHTML = '<span class="spinner"></span> Checking connection...';
+      
+      setTimeout(() => {
+        if (navigator.onLine) {
+          window.location.reload();
+        } else {
+          btn.classList.remove('loading');
+          btn.innerHTML = '🔄 Try Again';
+          const dot = document.getElementById('statusDot');
+          dot.style.background = '#ef4444';
+          dot.style.animation = 'blink 0.3s ease-in-out 3';
+        }
+      }, 1500);
+    }
+
+    // Live online/offline detection
+    window.addEventListener('online', () => {
+      document.getElementById('statusDot').className = 'status-dot online';
+      document.getElementById('statusText').textContent = 'Connection restored! Reloading...';
+      setTimeout(() => window.location.reload(), 800);
+    });
+
+    window.addEventListener('offline', () => {
+      document.getElementById('statusDot').className = 'status-dot';
+      document.getElementById('statusText').textContent = 'No internet connection';
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Track Reservation - Sri Venkateshwara Medical Store</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="reservation.css">
+</head>
+<body>
+
+    <div class="app-shell">
+
+        <!-- Header -->
+        <header class="navbar" style="position: sticky; top: 0; padding: 12px 16px;">
+            <div class="nav-top" style="margin: 0; width: 100%; display: flex; justify-content: space-between; align-items: center;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <a href="index.html" class="logo-container">
+                        <div class="logo-icon">V</div>
+                        <div class="logo-text">
+                            SVMS
+                            <span>Medical Store</span>
+                        </div>
+                    </a>
+                </div>
+                <div class="nav-actions">
+                    <a href="index.html" class="icon-btn" aria-label="Go home">
+                        <i data-lucide="home"></i>
+                    </a>
+                </div>
+            </div>
+        </header>
+
+        <main class="reservation-main">
+
+            <!-- Page Title -->
+            <div class="page-title-row">
+                <i data-lucide="map-pin" style="color: var(--primary-blue); width: 22px; height: 22px;"></i>
+                <h2 class="page-title">Track Pickup Reservation</h2>
+            </div>
+
+            <!-- Two Column Layout -->
+            <div class="tracker-main-layout">
+                
+                <!-- Left: Progress Tracker -->
+                <div class="tracker-card">
+                    <h3 class="tracker-title" id="tracker-reservation-id">Reservation: Loading...</h3>
+                    
+                    <div class="timeline">
+                        <!-- Progress Fill Line -->
+                        <div class="timeline-progress-fill" id="timeline-fill"></div>
+
+                        <!-- Step 1 -->
+                        <div class="timeline-step completed" data-step="0">
+                            <div class="timeline-dot">
+                                <i data-lucide="file-text"></i>
+                            </div>
+                            <span class="timeline-label">Reservation Received</span>
+                            <span class="timeline-desc" id="step0-desc">Your reservation request has been submitted.</span>
+                        </div>
+
+                        <!-- Step 2 -->
+                        <div class="timeline-step active" data-step="1">
+                            <div class="timeline-dot">
+                                <i data-lucide="shield-check"></i>
+                            </div>
+                            <span class="timeline-label" id="step1-title">Prescription Verified</span>
+                            <span class="timeline-desc" id="step1-desc">Our pharmacist is checking your prescription requirements.</span>
+                        </div>
+
+                        <!-- Step 3 -->
+                        <div class="timeline-step" data-step="2">
+                            <div class="timeline-dot">
+                                <i data-lucide="package"></i>
+                            </div>
+                            <span class="timeline-label">Medicines Reserved</span>
+                            <span class="timeline-desc">Items are being selected and packed from the shelf inventory.</span>
+                        </div>
+
+                        <!-- Step 4 -->
+                        <div class="timeline-step" data-step="3">
+                            <div class="timeline-dot">
+                                <i data-lucide="store"></i>
+                            </div>
+                            <span class="timeline-label">Ready For Pickup</span>
+                            <span class="timeline-desc">Your order is packaged and waiting at the counter. Skip waiting queue!</span>
+                        </div>
+
+                        <!-- Step 5 -->
+                        <div class="timeline-step" data-step="4">
+                            <div class="timeline-dot">
+                                <i data-lucide="check-circle-2"></i>
+                            </div>
+                            <span class="timeline-label">Completed</span>
+                            <span class="timeline-desc">Medicines picked up and payment processed at the store counter.</span>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Right: Summary Details Card & Interactive Controls -->
+                <div class="summary-column">
+                    
+                    <!-- Reservation Ticket Details -->
+                    <div class="summary-card">
+                        <h3 class="summary-title" style="margin-bottom: 12px; padding-bottom: 8px;">Reservation Details</h3>
+                        
+                        <div class="receipt-row" style="margin-bottom: 10px; font-size: 13px;">
+                            <span style="color: var(--text-secondary);">Scheduled Pickup</span>
+                            <span id="tracker-pickup-time" style="font-weight: 700; color: var(--primary-blue);">Tomorrow at 11:00 AM</span>
+                        </div>
+                        
+                        <div class="receipt-row" style="margin-bottom: 10px; font-size: 13px;">
+                            <span style="color: var(--text-secondary);">Store Address</span>
+                            <span style="font-weight: 700; color: var(--text-primary); text-align: right;">Kachiguda Branch, Hyderabad</span>
+                        </div>
+
+                        <div class="receipt-row" style="margin-bottom: 10px; font-size: 13px;">
+                            <span style="color: var(--text-secondary);">Prep Time</span>
+                            <span id="tracker-prep" style="font-weight: 700; color: var(--accent-green);">15 mins</span>
+                        </div>
+
+                        <div style="border-top: 1px solid var(--border-color); margin-top: 12px; padding-top: 12px;">
+                            <span style="font-size: 12px; font-weight: 700; color: var(--text-secondary); display: block; margin-bottom: 6px;">Reserved Medicines</span>
+                            <div id="tracker-items-list" style="font-size: 13px; color: var(--text-primary);">
+                                <!-- Populated dynamically -->
+                            </div>
+                        </div>
+
+                        <div class="receipt-row total" style="margin-top: 12px; padding-top: 12px; font-size: 16px;">
+                            <span>Price to Pay</span>
+                            <span id="tracker-total">₹0.00</span>
+                        </div>
+                    </div>
+
+                    <!-- Interactive Demo State Changer (Allows testing animations!) -->
+                    <div class="demo-panel">
+                        <div class="demo-title">
+                            <i data-lucide="sliders" style="width: 14px; height: 14px;"></i>
+                            Demo Control: Simulate Live Status
+                        </div>
+                        <p style="font-size: 11px; color: var(--text-secondary); margin-bottom: 12px; line-height: 1.4;">
+                            Click status buttons below to watch the visual timeline transition with premium CSS glows and fill-line animations:
+                        </p>
+                        <div class="demo-buttons">
+                            <button class="demo-btn active" data-status="0">Received</button>
+                            <button class="demo-btn" data-status="1">Rx Checked</button>
+                            <button class="demo-btn" data-status="2">Reserved</button>
+                            <button class="demo-btn" data-status="3">Ready</button>
+                            <button class="demo-btn" data-status="4">Completed</button>
+                        </div>
+                    </div>
+
+                    <!-- Return button -->
+                    <a href="index.html" class="download-btn" style="text-decoration: none; font-size: 13px; font-weight: 700; background-color: var(--bg-white); border-color: var(--border-color); color: var(--text-secondary); margin-top: 12px;">
+                        <i data-lucide="arrow-left"></i>
+                        Return to Homepage
+                    </a>
+
+                </div>
+
+            </div>
+
+        </main>
+
+    </div>
+
+    <!-- Script references -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="medicine-data.js"></script>
+    <script id="tracker-script">
+        document.addEventListener('DOMContentLoaded', () => {
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+
+            const idEl = document.getElementById('tracker-reservation-id');
+            const timeEl = document.getElementById('tracker-pickup-time');
+            const prepEl = document.getElementById('tracker-prep');
+            const listEl = document.getElementById('tracker-items-list');
+            const totalEl = document.getElementById('tracker-total');
+
+            // Load data
+            let reservationData = null;
+            try {
+                reservationData = JSON.parse(localStorage.getItem('last_reservation'));
+            } catch(e) {
+                reservationData = null;
+            }
+
+            // Fallback default mock data if missing
+            if (!reservationData) {
+                reservationData = {
+                    id: 'SVMS-RE-582910',
+                    date: 'Tomorrow',
+                    time: '11:00 AM',
+                    prepTime: '15 mins',
+                    totalPrice: 30.00,
+                    items: [{ id: 'dolo-650', name: 'Dolo 650 Tablet', qty: 1 }]
+                };
+            }
+
+            // Populate values
+            idEl.textContent = `Reservation ${reservationData.id}`;
+            timeEl.textContent = `${reservationData.date} at ${reservationData.time}`;
+            prepEl.textContent = reservationData.prepTime;
+            totalEl.textContent = `₹${reservationData.totalPrice.toFixed(2)}`;
+
+            listEl.innerHTML = '';
+            reservationData.items.forEach(item => {
+                const div = document.createElement('div');
+                div.style.display = 'flex';
+                div.style.justify = 'space-between';
+                div.style.marginBottom = '6px';
+                div.innerHTML = `
+                    <span>${item.name}</span>
+                    <span style="font-weight: 700;">Qty: ${item.qty}</span>
+                `;
+                listEl.appendChild(div);
+            });
+
+            // Adjust prescription text if OTC
+            const step1Title = document.getElementById('step1-title');
+            const step1Desc = document.getElementById('step1-desc');
+            if (reservationData.prepTime === '15 mins') {
+                // OTC Only order
+                step1Title.textContent = 'OTC Verification';
+                step1Desc.textContent = 'No prescription needed. Checked for general health standards.';
+            } else {
+                step1Title.textContent = 'Prescription Verified';
+                step1Desc.textContent = 'Our pharmacist has verified and approved your prescription.';
+            }
+
+            // Tracker logic
+            const steps = document.querySelectorAll('.timeline-step');
+            const fillLine = document.getElementById('timeline-fill');
+            const demoBtns = document.querySelectorAll('.demo-btn');
+
+            function setTrackerStatus(index) {
+                steps.forEach((step, idx) => {
+                    const stepIdx = parseInt(step.getAttribute('data-step'));
+                    if (stepIdx < index) {
+                        step.className = 'timeline-step completed';
+                    } else if (stepIdx === index) {
+                        step.className = 'timeline-step active';
+                    } else {
+                        step.className = 'timeline-step';
+                    }
+                });
+
+                // Calculate progress line fill percentage
+                // index = 0 -> 0%
+                // index = 1 -> 25%
+                // index = 2 -> 50%
+                // index = 3 -> 75%
+                // index = 4 -> 100%
+                const fillPercent = (index / 4) * 100;
+                fillLine.style.height = `${fillPercent}%`;
+            }
+
+            // Bind click to demo buttons
+            demoBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    demoBtns.forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    const statusIndex = parseInt(btn.getAttribute('data-status'));
+                    setTrackerStatus(statusIndex);
+                });
+            });
+
+            // Start with step 1 (Rx verified / checking) active
+            setTrackerStatus(1);
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Schedule Pickup - Sri Venkateshwara Medical Store</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="reservation.css">
+</head>
+<body>
+
+    <div class="app-shell">
+
+        <!-- Sticky Header -->
+        <header class="navbar" style="position: sticky; top: 0; padding: 12px 16px;">
+            <div class="nav-top" style="margin: 0; width: 100%; display: flex; justify-content: space-between; align-items: center;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <button class="icon-btn" id="back-btn" aria-label="Go back">
+                        <i data-lucide="arrow-left"></i>
+                    </button>
+                    <h1 class="page-title" style="font-size: 18px; font-weight: 800; margin: 0;">Schedule Pickup</h1>
+                </div>
+                <div class="nav-actions">
+                    <button class="icon-btn" id="profile-btn" aria-label="Profile">
+                        <i data-lucide="user"></i>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <main class="reservation-main">
+            
+            <!-- Step Tracker -->
+            <div class="steps-progress-bar">
+                <div class="steps-progress-line" style="width: 60%;"></div>
+                <div class="step-indicator completed">1</div>
+                <div class="step-indicator active">2</div>
+                <div class="step-indicator">3</div>
+            </div>
+
+            <!-- Store Details Banner -->
+            <div class="store-details-card">
+                <div class="store-icon-wrapper">
+                    <i data-lucide="store" style="width: 22px; height: 22px;"></i>
+                </div>
+                <div class="store-info-text">
+                    <h4>Sri Venkateshwara Medical Store</h4>
+                    <p><i data-lucide="map-pin" style="width: 11px; height: 11px; display: inline-block; vertical-align: middle; margin-right: 2px;"></i> Kachiguda, Hyderabad</p>
+                    <p style="margin-top: 4px; font-weight: 600; color: var(--text-primary);"><i data-lucide="clock" style="width: 11px; height: 11px; display: inline-block; vertical-align: middle; margin-right: 2px;"></i> Open Daily: 9:00 AM – 10:00 PM</p>
+                </div>
+            </div>
+
+            <!-- Column Grid Layout for Large Screens -->
+            <div class="scheduler-column-layout">
+                
+                <!-- Left Section: Date Selector -->
+                <div class="scheduler-section">
+                    <h3 class="section-subtitle">Select Pickup Date</h3>
+                    <div class="date-scroller" id="date-cards-container">
+                        <!-- Rendered dynamically via JS -->
+                    </div>
+                </div>
+
+                <!-- Right Section: Time Slot Grid -->
+                <div class="scheduler-section">
+                    <h3 class="section-subtitle">Select Time Slot</h3>
+                    <div class="time-grid" id="time-slots-container">
+                        <!-- Rendered dynamically based on selected date -->
+                    </div>
+
+                    <!-- Prep Guarantee Warning -->
+                    <div class="info-strip teal" style="margin-top: 24px; border: 1px solid rgba(0, 168, 150, 0.15);">
+                        <i data-lucide="clock" class="info-strip-icon" style="color: var(--teal-accent);"></i>
+                        <div>
+                            <div class="info-strip-text info-strip-title" style="color: var(--teal-accent);">Ready Before Arrival</div>
+                            <div class="info-strip-text">Your medicines will be prepared, verified, and packaged at the counter before you arrive. Skip queue at counter!</div>
+                        </div>
+                    </div>
+
+                    <!-- Confirm button -->
+                    <button class="reservation-cta-btn" id="confirm-reservation-btn" style="margin-top: 24px;">
+                        <i data-lucide="bookmark-check" style="width: 20px; height: 20px;"></i>
+                        Confirm Reservation
+                    </button>
+                </div>
+
+            </div>
+
+        </main>
+
+        <!-- Toast Notifications -->
+        <div class="toast-container" id="toast">
+            <span class="toast-msg" id="toast-msg">Slot selected</span>
+            <span class="toast-action" id="toast-action">OK</span>
+        </div>
+
+    </div>
+
+    <!-- Script references -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="medicine-data.js"></script>
+    <script id="scheduler-script">
+        document.addEventListener('DOMContentLoaded', () => {
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+
+            const dateContainer = document.getElementById('date-cards-container');
+            const timeContainer = document.getElementById('time-slots-container');
+            const confirmBtn = document.getElementById('confirm-reservation-btn');
+            
+            // Header buttons
+            document.getElementById('back-btn').addEventListener('click', () => {
+                window.location.href = 'reservation-cart.html';
+            });
+            document.getElementById('profile-btn').addEventListener('click', () => {
+                showToast('Profile settings are loading...', 'OK');
+            });
+
+            // Toast setup
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toast-msg');
+            const toastAction = document.getElementById('toast-action');
+
+            function showToast(message, actionText = 'OK') {
+                toastMsg.textContent = message;
+                toastAction.textContent = actionText;
+                const newAction = toastAction.cloneNode(true);
+                toastAction.parentNode.replaceChild(newAction, toastAction);
+                newAction.addEventListener('click', hideToast);
+                toast.classList.add('show');
+                clearTimeout(toast.timeoutId);
+                toast.timeoutId = setTimeout(hideToast, 3000);
+            }
+
+            function hideToast() {
+                toast.classList.remove('show');
+            }
+
+            // Generate Date list (Today, Tomorrow, + 3 days)
+            const dateList = [];
+            const daysOfWeek = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            
+            for (let i = 0; i < 5; i++) {
+                const date = new Date();
+                date.setDate(date.getDate() + i);
+                
+                let dayLabel = daysOfWeek[date.getDay()];
+                if (i === 0) dayLabel = 'Today';
+                else if (i === 1) dayLabel = 'Tomorrow';
+
+                dateList.push({
+                    index: i,
+                    dayName: dayLabel,
+                    dayDate: date.getDate(),
+                    monthName: months[date.getMonth()],
+                    year: date.getFullYear(),
+                    rawDate: date
+                });
+            }
+
+            let selectedDateIndex = 0;
+            let selectedTimeSlot = '';
+
+            function renderDateCards() {
+                dateContainer.innerHTML = '';
+                dateList.forEach(item => {
+                    const card = document.createElement('div');
+                    card.className = `date-card ${item.index === selectedDateIndex ? 'active' : ''}`;
+                    card.innerHTML = `
+                        <div class="date-card-day">${item.dayName}</div>
+                        <div class="date-card-date">${item.dayDate}</div>
+                        <div style="font-size: 10px; color: var(--text-secondary); margin-top: 2px;">${item.monthName}</div>
+                    `;
+                    
+                    card.addEventListener('click', () => {
+                        selectedDateIndex = item.index;
+                        selectedTimeSlot = ''; // Reset selected slot when date changes
+                        renderDateCards();
+                        renderTimeSlots();
+                    });
+
+                    dateContainer.appendChild(card);
+                });
+            }
+
+            // Hourly slots 9 AM to 10 PM (inclusive)
+            const rawSlots = [
+                { time: '9:00 AM', hour: 9 },
+                { time: '10:00 AM', hour: 10 },
+                { time: '11:00 AM', hour: 11 },
+                { time: '12:00 PM', hour: 12 },
+                { time: '1:00 PM', hour: 13 },
+                { time: '2:00 PM', hour: 14 },
+                { time: '3:00 PM', hour: 15 },
+                { time: '4:00 PM', hour: 16 },
+                { time: '5:00 PM', hour: 17 },
+                { time: '6:00 PM', hour: 18 },
+                { time: '7:00 PM', hour: 19 },
+                { time: '8:00 PM', hour: 20 },
+                { time: '9:00 PM', hour: 21 },
+            ];
+
+            function renderTimeSlots() {
+                timeContainer.innerHTML = '';
+                const selectedDateObj = dateList[selectedDateIndex];
+                const now = new Date();
+                
+                // Check if selected date is "Today"
+                const isToday = selectedDateObj.index === 0;
+                
+                rawSlots.forEach(slot => {
+                    const button = document.createElement('div');
+                    
+                    // A slot is disabled if it's "Today" and the hour is already past
+                    let isDisabled = false;
+                    if (isToday) {
+                        // We also give a buffer of 1 hour to prepare
+                        if (now.getHours() >= slot.hour) {
+                            isDisabled = true;
+                        }
+                    }
+
+                    if (isDisabled) {
+                        button.className = 'time-slot disabled';
+                        button.textContent = slot.time;
+                    } else {
+                        const isActive = slot.time === selectedTimeSlot;
+                        button.className = `time-slot ${isActive ? 'active' : ''}`;
+                        button.textContent = slot.time;
+                        
+                        button.addEventListener('click', () => {
+                            selectedTimeSlot = slot.time;
+                            renderTimeSlots();
+                        });
+                    }
+
+                    timeContainer.appendChild(button);
+                });
+
+                // Check if all slots are disabled (e.g. user shopping past 9:00 PM for Today)
+                const activeSlots = timeContainer.querySelectorAll('.time-slot:not(.disabled)');
+                if (activeSlots.length === 0 && isToday) {
+                    // Show message that today is booked out, auto shift to Tomorrow!
+                    timeContainer.innerHTML = `
+                        <div style="grid-column: 1 / -1; text-align: center; padding: 12px; font-size: 13px; color: var(--accent-red); font-weight: 600;">
+                            Today's slots are closed. Please select Tomorrow or another date above.
+                        </div>
+                    `;
+                }
+            }
+
+            confirmBtn.addEventListener('click', () => {
+                const cart = ReservationCart.getCart();
+                if (cart.length === 0) {
+                    showToast('Your cart is empty. Cannot confirm reservation.');
+                    return;
+                }
+                
+                if (!selectedTimeSlot) {
+                    showToast('Please select a pickup time slot first.');
+                    return;
+                }
+
+                // Save to localStorage
+                const dateObj = dateList[selectedDateIndex];
+                const formattedDate = `${dateObj.dayName === 'Today' || dateObj.dayName === 'Tomorrow' ? dateObj.dayName : dateObj.dayName + ', ' + dateObj.dayDate + ' ' + dateObj.monthName}`;
+                
+                localStorage.setItem('pickup_date', formattedDate);
+                localStorage.setItem('pickup_time', selectedTimeSlot);
+
+                // Generate reservation ID
+                const randomId = 'SVMS-RE-' + Math.floor(100000 + Math.random() * 900000);
+                localStorage.setItem('pickup_reservation_id', randomId);
+
+                // Transition to confirmation page
+                window.location.href = 'confirmation.html';
+            });
+
+            // Initial render
+            renderDateCards();
+            renderTimeSlots();
+        });
+    </script>
+</body>
+</html>

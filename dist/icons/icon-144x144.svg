@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="144" height="144" viewBox="0 0 144 144" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgGrad144" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1a56db;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0f3a9e;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="crossGrad144" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ffffff;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#e0e7ff;stop-opacity:1" />
+    </linearGradient>
+    <clipPath id="roundRect144">
+      <rect width="144" height="144" rx="26" ry="26"/>
+    </clipPath>
+    <clipPath id="crossClip144">
+      <!-- Vertical bar -->
+      <rect x="52" y="7" 
+            width="40" height="130" 
+            rx="10" />
+      <!-- Horizontal bar -->
+      <rect x="7" y="52" 
+            width="130" height="40" 
+            rx="10" />
+    </clipPath>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="144" height="144" rx="26" ry="26" fill="url(#bgGrad144)"/>
+  
+  <!-- Cross shape (white) -->
+  <g clip-path="url(#crossClip144)">
+    <rect width="144" height="144" fill="white" opacity="0.95"/>
+  </g>
+  
+  <!-- Blue S-curve accent on the cross -->
+  <path 
+    d="M 76 13 
+       C 76 13, 
+         107 36, 
+         86 65 
+       C 66 94, 
+         94 114, 
+         83 131"
+    stroke="#1a56db" 
+    stroke-width="8" 
+    stroke-linecap="round" 
+    fill="none"
+    opacity="0.9"
+    clip-path="url(#crossClip144)"
+  />
+  
+  <!-- SVMS text label at bottom (only for larger icons) -->
+  
+  <text 
+    x="72" 
+    y="134" 
+    text-anchor="middle" 
+    font-family="Arial, Helvetica, sans-serif" 
+    font-size="12" 
+    font-weight="800" 
+    fill="white" 
+    opacity="0.9"
+    letter-spacing="2"
+  >SVMS</text>
+  
+</svg>

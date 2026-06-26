@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+
+    <!-- Primary Meta -->
+    <title>Sri Venkateshwara Medical Store – Trusted Pharmacy in Gachibowli</title>
+    <meta name="description" content="Sri Venkateshwara Medical & General Stores – Your trusted pharmacy in Gachibowli, Hyderabad. Order medicines, upload prescriptions, schedule pickups, and get expert pharmacist advice." />
+    <meta name="keywords" content="medical store, pharmacy, Gachibowli, Hyderabad, medicines, prescription, SVMS" />
+    <meta name="author" content="Sri Venkateshwara Medical Store" />
+    <meta name="robots" content="index, follow" />
+
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/manifest.json" />
+
+    <!-- Theme colors -->
+    <meta name="theme-color" content="#1a56db" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0f172a" media="(prefers-color-scheme: dark)" />
+    <meta name="background-color" content="#0f172a" />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/icons/icon-192x192.svg" />
+    <link rel="icon" type="image/svg+xml" sizes="512x512" href="/icons/icon-512x512.svg" />
+    <link rel="shortcut icon" href="/icons/icon-192x192.svg" />
+
+    <!-- Apple / iOS PWA -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="SVMS" />
+    <link rel="apple-touch-icon" href="/icons/icon-192x192.svg" />
+    <link rel="apple-touch-icon" sizes="152x152" href="/icons/icon-152x152.svg" />
+    <link rel="apple-touch-icon" sizes="144x144" href="/icons/icon-144x144.svg" />
+    <link rel="apple-touch-icon" sizes="128x128" href="/icons/icon-128x128.svg" />
+    <link rel="apple-touch-icon" sizes="96x96" href="/icons/icon-96x96.svg" />
+    <link rel="apple-touch-icon" sizes="72x72" href="/icons/icon-72x72.svg" />
+
+    <!-- Microsoft / Windows -->
+    <meta name="msapplication-TileColor" content="#1a56db" />
+    <meta name="msapplication-TileImage" content="/icons/icon-144x144.svg" />
+    <meta name="msapplication-config" content="none" />
+    <meta name="mobile-web-app-capable" content="yes" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Sri Venkateshwara Medical Store" />
+    <meta property="og:description" content="Your trusted pharmacy in Gachibowli, Hyderabad. Genuine medicines, expert pharmacist advice, and easy prescription uploads." />
+    <meta property="og:image" content="/icons/icon-512x512.svg" />
+    <meta property="og:locale" content="en_IN" />
+
+    <!-- Splash screen color for standalone mode -->
+    <style>
+        html { background-color: #0f172a; }
+        body { background-color: #0f172a; margin: 0; }
+    </style>
+
+    <!-- Theme Initialization Script -->
+    <script>
+        (function() {
+            const saved = localStorage.getItem('svms-theme');
+            const theme = saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+            document.documentElement.setAttribute('data-theme', theme);
+        })();
+    </script>
+</head>
+<body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+</body>
+</html>
+

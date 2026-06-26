@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reservation Confirmed - Sri Venkateshwara Medical Store</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="reservation.css">
+</head>
+<body>
+
+    <div class="app-shell">
+
+        <!-- Header -->
+        <header class="navbar" style="position: sticky; top: 0; padding: 12px 16px;">
+            <div class="nav-top" style="margin: 0; width: 100%; display: flex; justify-content: space-between; align-items: center;">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <a href="index.html" class="logo-container">
+                        <div class="logo-icon">V</div>
+                        <div class="logo-text">
+                            SVMS
+                            <span>Medical Store</span>
+                        </div>
+                    </a>
+                </div>
+                <div class="nav-actions">
+                    <a href="index.html" class="icon-btn" aria-label="Go home">
+                        <i data-lucide="home"></i>
+                    </a>
+                </div>
+            </div>
+        </header>
+
+        <main class="reservation-main">
+
+            <!-- Step Tracker -->
+            <div class="steps-progress-bar">
+                <div class="steps-progress-line" style="width: 100%;"></div>
+                <div class="step-indicator completed">1</div>
+                <div class="step-indicator completed">2</div>
+                <div class="step-indicator active">3</div>
+            </div>
+
+            <!-- Success Card -->
+            <div class="success-card">
+                <div class="success-badge-container">
+                    <i data-lucide="check" style="width: 30px; height: 30px;"></i>
+                </div>
+                
+                <h2>Reservation Confirmed!</h2>
+                <p class="subtitle" id="receipt-reservation-id">Reservation ID: Loading...</p>
+
+                <!-- High-tech Vector QR Code -->
+                <div class="qr-code-wrapper" aria-label="Reservation scan ticket QR Code">
+                    <svg viewBox="0 0 100 100">
+                        <!-- Outer Border Squares -->
+                        <rect x="5" y="5" width="22" height="22" fill="none" stroke="var(--primary-blue)" stroke-width="4"/>
+                        <rect x="11" y="11" width="10" height="10" fill="var(--primary-blue)"/>
+                        
+                        <rect x="73" y="5" width="22" height="22" fill="none" stroke="var(--primary-blue)" stroke-width="4"/>
+                        <rect x="79" y="11" width="10" height="10" fill="var(--primary-blue)"/>
+                        
+                        <rect x="5" y="73" width="22" height="22" fill="none" stroke="var(--primary-blue)" stroke-width="4"/>
+                        <rect x="11" y="79" width="10" height="10" fill="var(--primary-blue)"/>
+
+                        <!-- QR Code Center SVMS initials or medical cross -->
+                        <rect x="42" y="42" width="16" height="16" rx="2" fill="var(--teal-accent)" opacity="0.15"/>
+                        <path d="M50 45 L50 55 M45 50 L55 50" stroke="var(--teal-accent)" stroke-width="3.5" stroke-linecap="round"/>
+
+                        <!-- Simulated Data Dots -->
+                        <g fill="var(--text-primary)" opacity="0.85">
+                            <rect x="34" y="8" width="4" height="4" rx="1"/>
+                            <rect x="42" y="8" width="8" height="4" rx="1"/>
+                            <rect x="54" y="8" width="4" height="8" rx="1"/>
+                            <rect x="62" y="12" width="4" height="4" rx="1"/>
+                            <rect x="34" y="16" width="12" height="4" rx="1"/>
+                            <rect x="50" y="20" width="8" height="4" rx="1"/>
+                            
+                            <rect x="8" y="34" width="4" height="4" rx="1"/>
+                            <rect x="16" y="34" width="8" height="4" rx="1"/>
+                            <rect x="8" y="42" width="4" height="8" rx="1"/>
+                            <rect x="16" y="46" width="12" height="4" rx="1"/>
+                            <rect x="8" y="54" width="8" height="4" rx="1"/>
+                            <rect x="20" y="54" width="4" height="8" rx="1"/>
+
+                            <rect x="76" y="34" width="8" height="4" rx="1"/>
+                            <rect x="88" y="34" width="4" height="4" rx="1"/>
+                            <rect x="76" y="42" width="4" height="8" rx="1"/>
+                            <rect x="84" y="46" width="12" height="4" rx="1"/>
+                            <rect x="76" y="54" width="4" height="4" rx="1"/>
+                            <rect x="84" y="54" width="8" height="4" rx="1"/>
+
+                            <rect x="34" y="76" width="4" height="4" rx="1"/>
+                            <rect x="42" y="76" width="8" height="4" rx="1"/>
+                            <rect x="54" y="76" width="4" height="8" rx="1"/>
+                            <rect x="62" y="80" width="4" height="4" rx="1"/>
+                            <rect x="34" y="84" width="12" height="4" rx="1"/>
+                            <rect x="50" y="88" width="8" height="4" rx="1"/>
+
+                            <!-- Random Scatter in between -->
+                            <rect x="32" y="30" width="4" height="4" rx="1"/>
+                            <rect x="48" y="32" width="4" height="4" rx="1"/>
+                            <rect x="62" y="30" width="8" height="4" rx="1"/>
+                            <rect x="30" y="62" width="8" height="4" rx="1"/>
+                            <rect x="42" y="66" width="4" height="4" rx="1"/>
+                            <rect x="66" y="62" width="4" height="8" rx="1"/>
+                        </g>
+                    </svg>
+                </div>
+
+                <!-- Receipt Ticket Details -->
+                <div class="receipt-block">
+                    <div class="receipt-row">
+                        <span class="label">Pickup Date</span>
+                        <span class="val" id="receipt-date">Today</span>
+                    </div>
+                    <div class="receipt-row">
+                        <span class="label">Pickup Time</span>
+                        <span class="val blue" id="receipt-time">6:00 PM</span>
+                    </div>
+                    <div class="receipt-row">
+                        <span class="label">Store Location</span>
+                        <span class="val">Sri Venkateshwara Medical Store<br><span style="font-weight: 500; font-size: 11px; color: var(--text-secondary);">Kachiguda, Hyderabad</span></span>
+                    </div>
+                    <div class="receipt-row">
+                        <span class="label">Preparation Time</span>
+                        <span class="val" id="receipt-prep" style="color: var(--accent-green);">15 mins</span>
+                    </div>
+                    
+                    <div class="receipt-row" style="border-top: 1px solid var(--border-color); padding-top: 10px;">
+                        <span class="label">Medicines Reserved</span>
+                        <span class="val" id="receipt-items-list" style="font-weight: 500; color: var(--text-secondary); text-align: right;">
+                            <!-- Items populated dynamically -->
+                        </span>
+                    </div>
+
+                    <div class="receipt-row total">
+                        <span class="label" style="font-weight: 700;">To Pay at Store</span>
+                        <span class="val" id="receipt-total">₹0.00</span>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="success-actions">
+                    <button class="reservation-cta-btn" id="track-status-btn" style="margin-top: 0;">
+                        <i data-lucide="map-pin"></i>
+                        View Reservation Status
+                    </button>
+                    <button class="download-btn" id="download-ticket-btn">
+                        <i data-lucide="download"></i>
+                        Download Reservation PDF
+                    </button>
+                </div>
+            </div>
+
+        </main>
+
+        <!-- Toast Notification -->
+        <div class="toast-container" id="toast">
+            <span class="toast-msg" id="toast-msg">Item added to cart</span>
+            <span class="toast-action" id="toast-action">View Cart</span>
+        </div>
+
+    </div>
+
+    <!-- Script references -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="medicine-data.js"></script>
+    <script id="success-script">
+        document.addEventListener('DOMContentLoaded', () => {
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+
+            const idEl = document.getElementById('receipt-reservation-id');
+            const dateEl = document.getElementById('receipt-date');
+            const timeEl = document.getElementById('receipt-time');
+            const prepEl = document.getElementById('receipt-prep');
+            const listEl = document.getElementById('receipt-items-list');
+            const totalEl = document.getElementById('receipt-total');
+            const downloadBtn = document.getElementById('download-ticket-btn');
+            const trackBtn = document.getElementById('track-status-btn');
+
+            // Toast setup
+            const toast = document.getElementById('toast');
+            const toastMsg = document.getElementById('toast-msg');
+            const toastAction = document.getElementById('toast-action');
+
+            function showToast(message, actionText = 'OK') {
+                toastMsg.textContent = message;
+                toastAction.textContent = actionText;
+                const newAction = toastAction.cloneNode(true);
+                toastAction.parentNode.replaceChild(newAction, toastAction);
+                newAction.addEventListener('click', hideToast);
+                toast.classList.add('show');
+                clearTimeout(toast.timeoutId);
+                toast.timeoutId = setTimeout(hideToast, 3000);
+            }
+
+            function hideToast() {
+                toast.classList.remove('show');
+            }
+
+            // 1. Process reservation state
+            const activeCart = ReservationCart.getCart();
+            const pickupDate = localStorage.getItem('pickup_date');
+            const pickupTime = localStorage.getItem('pickup_time');
+            const reservationId = localStorage.getItem('pickup_reservation_id');
+
+            let reservationData = null;
+
+            if (activeCart.length > 0) {
+                // First-time load: Package active cart items, save to last_reservation, clear cart
+                let grandTotal = 0;
+                let hasRx = false;
+                const itemsList = [];
+
+                activeCart.forEach(item => {
+                    const med = MEDICINE_DB[item.id];
+                    if (med) {
+                        grandTotal += med.priceDiscounted * item.qty;
+                        if (med.requiresPrescription) hasRx = true;
+                        itemsList.push({ id: item.id, qty: item.qty, name: med.name });
+                    }
+                });
+
+                reservationData = {
+                    id: reservationId || ('SVMS-RE-' + Math.floor(100000 + Math.random() * 900000)),
+                    date: pickupDate || 'Tomorrow',
+                    time: pickupTime || '12:00 PM',
+                    prepTime: hasRx ? '30 mins' : '15 mins',
+                    totalPrice: grandTotal,
+                    items: itemsList
+                };
+
+                localStorage.setItem('last_reservation', JSON.stringify(reservationData));
+                
+                // Clear the active reservation cart
+                ReservationCart.clearCart();
+            } else {
+                // If loaded without active cart, retrieve last_reservation details
+                try {
+                    reservationData = JSON.parse(localStorage.getItem('last_reservation'));
+                } catch (e) {
+                    reservationData = null;
+                }
+            }
+
+            // Fallback default mock data if everything is missing
+            if (!reservationData) {
+                reservationData = {
+                    id: 'SVMS-RE-582910',
+                    date: 'Tomorrow',
+                    time: '11:00 AM',
+                    prepTime: '15 mins',
+                    totalPrice: 30.00,
+                    items: [{ id: 'dolo-650', name: 'Dolo 650 Tablet', qty: 1 }]
+                };
+            }
+
+            // 2. Populate values
+            idEl.textContent = `Reservation ID: ${reservationData.id}`;
+            dateEl.textContent = reservationData.date;
+            timeEl.textContent = reservationData.time;
+            prepEl.textContent = reservationData.prepTime;
+            
+            if (reservationData.prepTime === '30 mins') {
+                prepEl.style.color = 'var(--primary-blue)';
+            } else {
+                prepEl.style.color = 'var(--accent-green)';
+            }
+
+            totalEl.textContent = `₹${reservationData.totalPrice.toFixed(2)}`;
+
+            // Populate items list
+            listEl.innerHTML = '';
+            reservationData.items.forEach(item => {
+                const div = document.createElement('div');
+                div.style.marginBottom = '4px';
+                div.textContent = `${item.name} (${item.qty})`;
+                listEl.appendChild(div);
+            });
+
+            // Actions
+            downloadBtn.addEventListener('click', () => {
+                showToast(`Downloading ticket: SVMS_${reservationData.id}.pdf ...`, 'Dismiss');
+            });
+
+            trackBtn.addEventListener('click', () => {
+                window.location.href = 'tracking.html';
+            });
+        });
+    </script>
+</body>
+</html>

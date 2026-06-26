@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Sri Venkateshwara Medical Store - Quick Medicine Delivery</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- App Shell simulating Mobile view -->
+    <div class="app-shell">
+        
+        <!-- 1. Sticky Navbar -->
+        <header class="navbar">
+            <div class="nav-top">
+                <a href="#" class="logo-container">
+                    <div class="logo-icon">
+                        <i data-lucide="plus"></i>
+                    </div>
+                    <div class="logo-text">
+                        SVMS
+                        <span>Medical Store</span>
+                    </div>
+                </a>
+                <div class="nav-actions">
+                    <button class="icon-btn" id="profile-btn" aria-label="Profile">
+                        <i data-lucide="user"></i>
+                    </button>
+                    <button class="icon-btn" id="cart-btn" aria-label="Cart">
+                        <i data-lucide="shopping-cart"></i>
+                        <span class="cart-badge" id="cart-badge">0</span>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="search-container">
+                <input type="text" class="search-input" id="search-bar" placeholder="Search medicines, wellness..." autocomplete="off">
+                <i data-lucide="search" class="search-icon"></i>
+                <div class="search-results-modal" id="search-modal">
+                    <div class="suggestion-item" data-search="Dolo 650">
+                        <i data-lucide="search" size="16"></i>
+                        <span class="suggestion-text">Dolo 650 (Paracetamol)</span>
+                        <span class="suggestion-cat">Medicines</span>
+                    </div>
+                    <div class="suggestion-item" data-search="Multivitamins">
+                        <i data-lucide="search" size="16"></i>
+                        <span class="suggestion-text">Multivitamins Plus</span>
+                        <span class="suggestion-cat">Wellness</span>
+                    </div>
+                    <div class="suggestion-item" data-search="Cough Syrup">
+                        <i data-lucide="search" size="16"></i>
+                        <span class="suggestion-text">Kof-Kure Cough Syrup</span>
+                        <span class="suggestion-cat">Cough & Cold</span>
+                    </div>
+                    <div class="suggestion-item" data-search="Pain Relief Gel">
+                        <i data-lucide="search" size="16"></i>
+                        <span class="suggestion-text">Relief-Max Pain Gel</span>
+                        <span class="suggestion-cat">Personal Care</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Search Suggestions / Results Modal Overlay -->
+        <div class="modal-overlay" id="modal-overlay"></div>
+
+
+        <main>
+            <!-- 2. Promotional Carousel -->
+            <section class="carousel-section">
+                <div class="carousel-container">
+                    <div class="carousel-track" id="carousel-track">
+                        
+                        <!-- Slide 1: Healthcare Offers -->
+                        <div class="carousel-slide">
+                            <div class="promo-card promo-card-1">
+                                <span class="promo-tag">Special Offer</span>
+                                <div class="promo-content">
+                                    <h3 class="promo-title">Flat 20% OFF</h3>
+                                    <p class="promo-subtitle">On all chronic wellness medicines</p>
+                                </div>
+                                <button class="promo-btn">Order Now</button>
+                                <!-- SVG Graphic overlay -->
+                                <svg class="promo-graphic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                    <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                                </svg>
+                            </div>
+                        </div>
+                        
+                        <!-- Slide 2: Pickup Promotion -->
+                        <div class="carousel-slide">
+                            <div class="promo-card promo-card-2">
+                                <span class="promo-tag">Instant Pickup</span>
+                                <div class="promo-content">
+                                    <h3 class="promo-title">Express Pickup</h3>
+                                    <p class="promo-subtitle">Ready in 10 mins. Skip queues!</p>
+                                </div>
+                                <button class="promo-btn">Schedule</button>
+                                <!-- SVG Graphic overlay -->
+                                <svg class="promo-graphic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                    <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+                                    <line x1="8" y1="21" x2="16" y2="21"/>
+                                    <line x1="12" y1="17" x2="12" y2="21"/>
+                                </svg>
+                            </div>
+                        </div>
+                        
+                        <!-- Slide 3: Prescription Upload Offers -->
+                        <div class="carousel-slide">
+                            <div class="promo-card promo-card-3">
+                                <span class="promo-tag">Prescription Offer</span>
+                                <div class="promo-content">
+                                    <h3 class="promo-title">Free Consultation</h3>
+                                    <p class="promo-subtitle">Upload RX & get verified in 5 mins</p>
+                                </div>
+                                <button class="promo-btn">Upload Rx</button>
+                                <!-- SVG Graphic overlay -->
+                                <svg class="promo-graphic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                                    <polyline points="14 2 14 8 20 8"/>
+                                    <line x1="16" y1="13" x2="8" y2="13"/>
+                                    <line x1="16" y1="17" x2="8" y2="17"/>
+                                    <polyline points="10 9 9 9 8 9"/>
+                                </svg>
+                            </div>
+                        </div>
+                        
+                    </div>
+                </div>
+                <!-- Carousel Indicators -->
+                <div class="carousel-indicators" id="carousel-indicators">
+                    <span class="indicator active" data-index="0"></span>
+                    <span class="indicator" data-index="1"></span>
+                    <span class="indicator" data-index="2"></span>
+                </div>
+            </section>
+
+            <!-- 3. Quick Actions Grid -->
+            <section class="quick-actions-section">
+                <div class="quick-grid">
+                    
+                    <div class="action-card" id="action-pickup">
+                        <div class="action-icon-wrapper">
+                            <i data-lucide="store"></i>
+                        </div>
+                        <div>
+                            <h4 class="action-title">Schedule Pickup</h4>
+                            <p class="action-desc">Ready at store</p>
+                        </div>
+                        <span class="action-badge">Fast</span>
+                    </div>
+                    
+                    <div class="action-card" id="action-upload">
+                        <div class="action-icon-wrapper">
+                            <i data-lucide="file-text"></i>
+                        </div>
+                        <div>
+                            <h4 class="action-title">Upload Prescription</h4>
+                            <p class="action-desc">Let us read Rx</p>
+                        </div>
+                    </div>
+                    
+                    <div class="action-card" id="action-repeat">
+                        <div class="action-icon-wrapper">
+                            <i data-lucide="rotate-ccw"></i>
+                        </div>
+                        <div>
+                            <h4 class="action-title">Repeat Order</h4>
+                            <p class="action-desc">Reorder 1-tap</p>
+                        </div>
+                    </div>
+                    
+                    <div class="action-card" id="action-pharmacist">
+                        <div class="action-icon-wrapper">
+                            <i data-lucide="phone-call"></i>
+                        </div>
+                        <div>
+                            <h4 class="action-title">Talk to Pharmacist</h4>
+                            <p class="action-desc">Expert help</p>
+                        </div>
+                    </div>
+                    
+                </div>
+            </section>
+
+            <!-- 4. Medicine Categories (Horizontal Scroll) -->
+            <section class="categories-section">
+                <div class="section-title" style="padding: 0 16px;">
+                    Medicine Categories
+                </div>
+                <div class="categories-container">
+                    
+                    <div class="category-card">
+                        <div class="category-img-container">
+                            <svg class="category-icon" viewBox="0 0 24 24" fill="none" stroke="var(--primary-blue)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z"></path>
+                                <path d="m8.5 8.5 7 7"></path>
+                            </svg>
+                        </div>
+                        <span class="category-name">Medicines</span>
+                    </div>
+
+                    <div class="category-card">
+                        <div class="category-img-container">
+                            <svg class="category-icon" viewBox="0 0 24 24" fill="none" stroke="var(--teal-accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                            </svg>
+                        </div>
+                        <span class="category-name">Wellness</span>
+                    </div>
+
+                    <div class="category-card">
+                        <div class="category-img-container">
+                            <svg class="category-icon" viewBox="0 0 24 24" fill="none" stroke="#E65100" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"></path>
+                            </svg>
+                        </div>
+                        <span class="category-name">Personal Care</span>
+                    </div>
+
+                    <div class="category-card">
+                        <div class="category-img-container">
+                            <svg class="category-icon" viewBox="0 0 24 24" fill="none" stroke="#2E7D32" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                            </svg>
+                        </div>
+                        <span class="category-name">Health Devices</span>
+                    </div>
+
+                    <div class="category-card">
+                        <div class="category-img-container">
+                            <svg class="category-icon" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 3.5 3.5z"></path>
+                            </svg>
+                        </div>
+                        <span class="category-name">Diabetes</span>
+                    </div>
+
+                    <div class="category-card">
+                        <div class="category-img-container">
+                            <svg class="category-icon" viewBox="0 0 24 24" fill="none" stroke="#7C3AED" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12s4.477 10 10 10z"></path>
+                                <path d="M12 6v6l4 2"></path>
+                            </svg>
+                        </div>
+                        <span class="category-name">Baby Care</span>
+                    </div>
+
+                </div>
+            </section>
+
+            <!-- 5. Popular Medicines Section -->
+            <section class="popular-section">
+                <div class="section-title">
+                    Popular Medicines
+                </div>
+                <div class="product-grid">
+                    
+                    <!-- Product 1 -->
+                    <div class="product-card" data-id="dolo-650">
+                        <span class="product-discount">15% OFF</span>
+                        <div>
+                            <div class="product-img-wrapper">
+                                <!-- Clean CSS-based SVG representation of medicine box -->
+                                <svg class="product-img" viewBox="0 0 100 80" width="80" height="80">
+                                    <rect x="15" y="15" width="70" height="50" rx="6" fill="#F0F4FA" stroke="var(--primary-blue)" stroke-width="2.5"/>
+                                    <rect x="25" y="25" width="20" height="8" rx="2" fill="var(--primary-blue)" opacity="0.8"/>
+                                    <circle cx="65" cy="40" r="10" fill="var(--teal-accent)" opacity="0.9"/>
+                                    <line x1="60" y1="40" x2="70" y2="40" stroke="white" stroke-width="2"/>
+                                    <line x1="65" y1="35" x2="65" y2="45" stroke="white" stroke-width="2"/>
+                                    <line x1="25" y1="45" x2="45" y2="45" stroke="var(--text-light)" stroke-width="2"/>
+                                    <line x1="25" y1="52" x2="38" y2="52" stroke="var(--text-light)" stroke-width="2"/>
+                                </svg>
+                            </div>
+                            <div class="product-meta">Micro Labs</div>
+                            <h4 class="product-name">Dolo 650 Tablet</h4>
+                            <p class="product-info">Strip of 15 tablets</p>
+                        </div>
+                        <div>
+                            <div class="product-status status-instock">
+                                <span class="status-dot"></span> In Stock
+                            </div>
+                            <div class="product-footer">
+                                <div class="product-pricing">
+                                    <span class="price-original">₹35.30</span>
+                                    <span class="price-discounted">₹30.00</span>
+                                </div>
+                                <button class="add-btn" data-id="dolo-650" data-name="Dolo 650 Tablet" data-price="30.00">ADD</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Product 2 -->
+                    <div class="product-card" data-id="vit-c-zinc">
+                        <span class="product-discount">20% OFF</span>
+                        <div>
+                            <div class="product-img-wrapper">
+                                <svg class="product-img" viewBox="0 0 100 80" width="80" height="80">
+                                    <rect x="30" y="10" width="40" height="60" rx="8" fill="#F0F6F5" stroke="var(--teal-accent)" stroke-width="2.5"/>
+                                    <rect x="35" y="20" width="30" height="15" rx="3" fill="var(--teal-accent)" opacity="0.3"/>
+                                    <rect x="38" y="25" width="24" height="5" rx="1" fill="var(--teal-accent)"/>
+                                    <circle cx="50" cy="50" r="8" fill="#FF9800" opacity="0.9"/>
+                                    <text x="47" y="54" fill="white" font-family="var(--font-family)" font-size="10" font-weight="bold">C</text>
+                                </svg>
+                            </div>
+                            <div class="product-meta">Abbott</div>
+                            <h4 class="product-name">Zincovit Multivitamins</h4>
+                            <p class="product-info">Bottle of 30 tablets</p>
+                        </div>
+                        <div>
+                            <div class="product-status status-instock">
+                                <span class="status-dot"></span> In Stock
+                            </div>
+                            <div class="product-footer">
+                                <div class="product-pricing">
+                                    <span class="price-original">₹150.00</span>
+                                    <span class="price-discounted">₹120.00</span>
+                                </div>
+                                <button class="add-btn" data-id="vit-c-zinc" data-name="Zincovit Tablets" data-price="120.00">ADD</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Product 3 -->
+                    <div class="product-card" data-id="cough-syrup">
+                        <span class="product-discount">10% OFF</span>
+                        <div>
+                            <div class="product-img-wrapper">
+                                <svg class="product-img" viewBox="0 0 100 80" width="80" height="80">
+                                    <!-- Bottle body -->
+                                    <path d="M 40,15 L 60,15 L 60,25 C 60,25 70,30 70,40 L 70,70 L 30,70 L 30,40 C 30,30 40,25 40,25 Z" fill="#FDF3F5" stroke="#fc6076" stroke-width="2.5"/>
+                                    <!-- Cap -->
+                                    <rect x="45" y="8" width="10" height="7" rx="1" fill="#fc6076"/>
+                                    <!-- Label -->
+                                    <rect x="36" y="38" width="28" height="22" rx="2" fill="#fc6076" opacity="0.2"/>
+                                    <line x1="42" y1="48" x2="58" y2="48" stroke="#fc6076" stroke-width="2"/>
+                                </svg>
+                            </div>
+                            <div class="product-meta">Kof-Kure</div>
+                            <h4 class="product-name">Kof-Kure Cough Syrup</h4>
+                            <p class="product-info">Bottle of 100 ml</p>
+                        </div>
+                        <div>
+                            <div class="product-status status-instock">
+                                <span class="status-dot"></span> In Stock
+                            </div>
+                            <div class="product-footer">
+                                <div class="product-pricing">
+                                    <span class="price-original">₹94.50</span>
+                                    <span class="price-discounted">₹85.00</span>
+                                </div>
+                                <button class="add-btn" data-id="cough-syrup" data-name="Kof-Kure Syrup" data-price="85.00">ADD</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Product 4 -->
+                    <div class="product-card" data-id="pain-gel">
+                        <span class="product-discount">15% OFF</span>
+                        <div>
+                            <div class="product-img-wrapper">
+                                <svg class="product-img" viewBox="0 0 100 80" width="80" height="80">
+                                    <!-- Tube shape -->
+                                    <path d="M 30,65 L 70,65 L 62,20 L 38,20 Z" fill="#F0FAF9" stroke="var(--primary-blue)" stroke-width="2.5"/>
+                                    <!-- Cap -->
+                                    <rect x="44" y="12" width="12" height="8" rx="2" fill="var(--teal-accent)"/>
+                                    <!-- Wave decoration -->
+                                    <path d="M 36,40 Q 50,30 64,40" fill="none" stroke="var(--primary-blue)" stroke-width="3"/>
+                                </svg>
+                            </div>
+                            <div class="product-meta">Relief-Max</div>
+                            <h4 class="product-name">Relief-Max Pain Gel</h4>
+                            <p class="product-info">Tube of 30 gm</p>
+                        </div>
+                        <div>
+                            <div class="product-status status-low">
+                                <span class="status-dot"></span> Only 2 left
+                            </div>
+                            <div class="product-footer">
+                                <div class="product-pricing">
+                                    <span class="price-original">₹111.75</span>
+                                    <span class="price-discounted">₹95.00</span>
+                                </div>
+                                <button class="add-btn" data-id="pain-gel" data-name="Relief-Max Gel" data-price="95.00">ADD</button>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+        </main>
+
+        <!-- 6. Floating WhatsApp Button -->
+        <div class="whatsapp-btn" id="whatsapp-btn" aria-label="Chat with Pharmacist on WhatsApp">
+            <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+                <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.717-1.458L0 24zm6.59-4.846c1.6.95 3.498 1.452 5.411 1.453 5.541 0 10.057-4.513 10.06-10.06.002-2.69-1.047-5.216-2.951-7.121C17.26 1.521 14.736.472 12.01.472c-5.548 0-10.067 4.516-10.07 10.067-.001 1.92.501 3.791 1.457 5.4l-.993 3.626 3.714-.974zm11.272-7.7c-.3-.15-1.772-.875-2.047-.975-.276-.1-.476-.15-.676.15-.2.3-.775.975-.95 1.175-.175.2-.35.225-.65.075-.3-.15-1.265-.467-2.41-1.485-.89-.795-1.49-1.77-1.665-2.07-.175-.3-.018-.462.13-.61.135-.133.3-.35.45-.525.15-.175.2-.3.3-.5.1-.2.05-.375-.025-.525-.075-.15-.676-1.63-1.01-2.435-.29-.696-.6-.6-.826-.612-.213-.011-.457-.013-.7-.013-.243 0-.64.09-1.07.56-.43.47-1.64 1.6-1.64 3.9s1.67 4.53 1.9 4.84c.23.3 3.284 5.013 7.956 7.027 1.11.48 1.98.767 2.656.98.114.037.227.03.312.018.913-.135 1.772-.72 2.022-1.38.25-.66.25-1.225.175-1.38-.075-.15-.275-.25-.575-.4z"/>
+            </svg>
+        </div>
+
+        <!-- Toast Notifications wrapper -->
+        <div class="toast-container" id="toast">
+            <span class="toast-msg" id="toast-msg">Item added to cart</span>
+            <span class="toast-action" id="toast-action">View Cart</span>
+        </div>
+
+    </div>
+
+    <!-- Script references -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="medicine-data.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

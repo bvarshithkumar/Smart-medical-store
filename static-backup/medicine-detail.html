@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Medicine Details - Sri Venkateshwara Medical Store</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="detail.css">
+</head>
+<body>
+
+    <div class="app-shell" id="app-shell">
+
+        <!-- Sticky Top Bar -->
+        <header class="detail-header" id="detail-header">
+            <button class="back-btn" id="back-btn" aria-label="Go back">
+                <i data-lucide="arrow-left"></i>
+            </button>
+            <span class="detail-header-title" id="detail-header-title">Medicine Details</span>
+            <div class="nav-actions">
+                <button class="icon-btn" id="share-btn" aria-label="Share">
+                    <i data-lucide="share-2"></i>
+                </button>
+                <button class="icon-btn" id="cart-btn" aria-label="Cart">
+                    <i data-lucide="shopping-cart"></i>
+                    <span class="cart-badge" id="cart-badge">0</span>
+                </button>
+            </div>
+        </header>
+
+        <main class="detail-main">
+
+            <!-- 1. Image Gallery -->
+            <section class="gallery-section">
+                <div class="gallery-container">
+                    <div class="gallery-track" id="gallery-track">
+                        <div class="gallery-slide" id="gallery-slide-0">
+                            <div class="gallery-img-wrap" id="gallery-img-primary"></div>
+                        </div>
+                        <div class="gallery-slide" id="gallery-slide-1">
+                            <div class="gallery-img-wrap gallery-img-alt1"></div>
+                        </div>
+                        <div class="gallery-slide" id="gallery-slide-2">
+                            <div class="gallery-img-wrap gallery-img-alt2"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="gallery-thumbnails" id="gallery-thumbnails">
+                    <div class="gallery-thumb active" data-index="0"></div>
+                    <div class="gallery-thumb" data-index="1"></div>
+                    <div class="gallery-thumb" data-index="2"></div>
+                </div>
+                <div class="gallery-dots" id="gallery-dots">
+                    <span class="gdot active" data-index="0"></span>
+                    <span class="gdot" data-index="1"></span>
+                    <span class="gdot" data-index="2"></span>
+                </div>
+            </section>
+
+            <!-- 2. Medicine Info Block -->
+            <section class="medicine-info-section">
+                <div class="medicine-badges" id="medicine-badges">
+                    <!-- Rendered by JS -->
+                </div>
+                <div class="medicine-meta-brand" id="medicine-meta-brand"></div>
+                <h1 class="medicine-name" id="medicine-name">Loading...</h1>
+                <p class="medicine-pack-info" id="medicine-pack-info"></p>
+
+                <div class="medicine-pricing-row">
+                    <div class="medicine-pricing">
+                        <span class="med-price-original" id="med-price-original"></span>
+                        <span class="med-price-discounted" id="med-price-discounted"></span>
+                    </div>
+                    <span class="med-discount-pill" id="med-discount-pill"></span>
+                </div>
+
+                <div class="medicine-stock-row" id="medicine-stock-row">
+                    <!-- Rendered by JS -->
+                </div>
+
+                <!-- Key Highlights Strip -->
+                <div class="highlights-strip">
+                    <div class="highlight-item">
+                        <i data-lucide="truck"></i>
+                        <span>Pickup Ready</span>
+                    </div>
+                    <div class="highlight-item">
+                        <i data-lucide="shield-check"></i>
+                        <span>100% Genuine</span>
+                    </div>
+                    <div class="highlight-item">
+                        <i data-lucide="clock"></i>
+                        <span>Fast Pickup</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 3. Info Tabs -->
+            <section class="tabs-section">
+                <div class="tabs-nav" role="tablist">
+                    <button class="tab-btn active" data-tab="description" role="tab">Description</button>
+                    <button class="tab-btn" data-tab="dosage" role="tab">Dosage</button>
+                    <button class="tab-btn" data-tab="side-effects" role="tab">Side Effects</button>
+                    <button class="tab-btn" data-tab="storage" role="tab">Storage</button>
+                </div>
+                <div class="tabs-content">
+                    <div class="tab-panel active" id="tab-description">
+                        <p id="tab-desc-text"></p>
+                    </div>
+                    <div class="tab-panel" id="tab-dosage">
+                        <ul class="tab-list" id="tab-dosage-list"></ul>
+                    </div>
+                    <div class="tab-panel" id="tab-side-effects">
+                        <ul class="tab-list" id="tab-side-effects-list"></ul>
+                    </div>
+                    <div class="tab-panel" id="tab-storage">
+                        <ul class="tab-list" id="tab-storage-list"></ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 4. Similar Medicines -->
+            <section class="similar-section" id="similar-section">
+                <div class="section-title" style="padding: 0;">
+                    Similar Medicines
+                </div>
+                <div class="similar-scroll" id="similar-scroll">
+                    <!-- Rendered by JS -->
+                </div>
+            </section>
+
+            <!-- 5. Frequently Bought Together -->
+            <section class="fbt-section" id="fbt-section">
+                <div class="section-title" style="padding: 0;">
+                    Frequently Bought Together
+                </div>
+                <div class="fbt-list" id="fbt-list">
+                    <!-- Rendered by JS -->
+                </div>
+                <button class="fbt-add-all-btn" id="fbt-add-all-btn">
+                    <i data-lucide="shopping-cart"></i>
+                    Add All to Cart
+                </button>
+            </section>
+
+            <!-- Bottom padding so sticky bar doesn't cover content -->
+            <div style="height: 90px;"></div>
+
+        </main>
+
+        <!-- 6. Sticky Bottom Bar -->
+        <div class="sticky-bottom-bar" id="sticky-bottom-bar">
+            <div class="qty-selector">
+                <button class="qty-btn" id="qty-minus" aria-label="Decrease quantity">
+                    <i data-lucide="minus"></i>
+                </button>
+                <span class="qty-display" id="qty-display">1</span>
+                <button class="qty-btn" id="qty-plus" aria-label="Increase quantity">
+                    <i data-lucide="plus"></i>
+                </button>
+            </div>
+            <div class="sticky-bar-actions">
+                <button class="detail-secondary-btn" id="detail-add-reservation-btn">
+                    <i data-lucide="bookmark"></i>
+                    Add to Reservation
+                </button>
+                <button class="detail-primary-btn" id="detail-reserve-now-btn">
+                    Reserve Medicine
+                </button>
+            </div>
+        </div>
+
+        <!-- Toast -->
+        <div class="toast-container" id="toast">
+            <span class="toast-msg" id="toast-msg">Item added to cart</span>
+            <span class="toast-action" id="toast-action">View Cart</span>
+        </div>
+
+    </div>
+
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="medicine-data.js"></script>
+    <script src="detail.js"></script>
+</body>
+</html>
