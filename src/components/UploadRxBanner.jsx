@@ -45,8 +45,9 @@ const UploadRxBanner = () => {
   const [uploadProgress, setUploadProgress] = useState('');
   const [errorMsg, setErrorMsg]             = useState('');
   const [successData, setSuccessData]       = useState(null);
-  const [countdown, setCountdown]           = useState(3);
+  const [countdown, setCountdown]           = useState(5);
   const [bannerBg, setBannerBg]             = useState('/images/rx_section_bg.png');
+  const countdownRef                        = useRef(null); // holds the interval so it can be cancelled early
 
   /* ── Fetch banner background from Supabase CMS ── */
   useEffect(() => {
@@ -76,18 +77,18 @@ const UploadRxBanner = () => {
   /* ── Auto-redirect after success ── */
   useEffect(() => {
     if (!successData) return;
-    setCountdown(3);
-    const interval = setInterval(() => {
+    setCountdown(5);
+    countdownRef.current = setInterval(() => {
       setCountdown(prev => {
         if (prev <= 1) {
-          clearInterval(interval);
-          navigate('/profile');
+          clearInterval(countdownRef.current);
+          navigate('/my-prescriptions');
           return 0;
         }
         return prev - 1;
       });
     }, 1000);
-    return () => clearInterval(interval);
+    return () => clearInterval(countdownRef.current);
   }, [successData, navigate]);
 
   /* ── Handlers ── */
@@ -672,10 +673,10 @@ const UploadRxBanner = () => {
                   Our pharmacist will review your prescription and contact you within approximately 15 minutes.
                 </p>
                 <p style={{ fontSize: '13px', color: 'rgba(255,255,255,0.65)', marginBottom: '6px' }}>
-                  You can track the status from your Profile page.
+                  You can track the status from your My Prescriptions page.
                 </p>
-                <p style={{ fontSize: '12px', color: 'var(--teal-accent, #00A884)', fontWeight: 700, marginBottom: '20px' }}>
-                  Redirecting to Profile in {countdown}s…
+                <p style={{ fontSize: '12.5px', color: 'var(--teal-accent, #00A884)', fontWeight: 700, marginBottom: '20px', lineHeight: 1.5 }}>
+                  Prescription uploaded successfully! Redirecting to My Prescriptions in {countdown} second{countdown !== 1 ? 's' : ''}…
                 </p>
 
                 {/* Reference ID */}
@@ -729,7 +730,10 @@ const UploadRxBanner = () => {
                     <RefreshCw size={13} /> Upload Another
                   </button>
                   <button
-                    onClick={() => navigate('/tracking', { state: { referenceId: successData.referenceId } })}
+                    onClick={() => {
+                      clearInterval(countdownRef.current);
+                      navigate('/my-prescriptions');
+                    }}
                     style={{
                       flex: 1, height: '42px',
                       background: 'var(--teal-accent, #00A884)', border: 'none',
@@ -737,7 +741,7 @@ const UploadRxBanner = () => {
                       display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px',
                     }}
                   >
-                    Track Status <ArrowRight size={13} />
+                    View My Prescriptions <ArrowRight size={13} />
                   </button>
                 </div>
               </div>
