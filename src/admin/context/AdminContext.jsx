@@ -600,30 +600,44 @@ export const AdminProvider = ({ children }) => {
 
   // ── Product CRUD ──────────────────────────────────────────
   const addProduct = async (product) => {
-    const prodId = product.id || `prod-${Date.now()}`;
     try {
+      const payload = {
+        name: product.name,
+        category: product.category,
+        brand: product.brand || 'Generic Brand',
+        generic_name: product.genericName || product.name,
+        description: product.description || '',
+        selling_price: product.price || 0,
+        mrp: product.mrp || 0,
+        stock_quantity: product.stock || 0,
+        prescription_required: !!product.prescriptionRequired,
+        image_url: product.image || '/images/cat_medicines.png',
+        sku: product.sku || `SKU-${(product.name || 'MED').substring(0,3).toUpperCase()}-${Math.floor(10000 + Math.random() * 90000)}`,
+        batch_no: product.batchNo || 'B-GEN999',
+        expiry_date: product.expiryDate || null,
+        reorder_level: product.reorderLevel ? +product.reorderLevel : 10,
+        manufacturer: product.manufacturer || 'Venkateshwara Pharma'
+      };
+
+      if (product.id) {
+        payload.id = product.id;
+      }
+
       const { error } = await supabase
         .from('products')
-        .insert({
-          id: prodId,
-          name: product.name,
-          category: product.category,
-          description: product.description || '',
-          selling_price: product.price || 0,
-          mrp: product.mrp || 0,
-          stock_quantity: product.stock || 0,
-          prescription_required: !!product.prescriptionRequired,
-          image_url: product.image || '/images/cat_medicines.png'
-        });
+        .insert(payload);
 
       if (!error) {
         fetchAllData();
         addLog(`Added new product: ${product.name}`, 'Product');
+        return { success: true };
       } else {
         console.error('Error inserting product in Supabase:', error);
+        return { success: false, error: error.message };
       }
     } catch (e) {
       console.error(e);
+      return { success: false, error: e.message };
     }
   };
 
@@ -634,23 +648,33 @@ export const AdminProvider = ({ children }) => {
         .update({
           name: data.name,
           category: data.category,
+          brand: data.brand || 'Generic Brand',
+          generic_name: data.genericName || data.name,
           description: data.description || '',
           selling_price: data.price || 0,
           mrp: data.mrp || 0,
           stock_quantity: data.stock || 0,
           prescription_required: !!data.prescriptionRequired,
-          image_url: data.image || '/images/cat_medicines.png'
+          image_url: data.image || '/images/cat_medicines.png',
+          sku: data.sku || '',
+          batch_no: data.batchNo || 'B-GEN999',
+          expiry_date: data.expiryDate || null,
+          reorder_level: data.reorderLevel ? +data.reorderLevel : 10,
+          manufacturer: data.manufacturer || 'Venkateshwara Pharma'
         })
         .eq('id', id);
 
       if (!error) {
         fetchAllData();
         addLog(`Updated product: ${data.name || id}`, 'Product');
+        return { success: true };
       } else {
         console.error('Error updating product in Supabase:', error);
+        return { success: false, error: error.message };
       }
     } catch (e) {
       console.error(e);
+      return { success: false, error: e.message };
     }
   };
 
@@ -664,11 +688,14 @@ export const AdminProvider = ({ children }) => {
       if (!error) {
         fetchAllData();
         addLog(`Deleted product: ${id}`, 'Product');
+        return { success: true };
       } else {
         console.error('Error deleting product in Supabase:', error);
+        return { success: false, error: error.message };
       }
     } catch (e) {
       console.error(e);
+      return { success: false, error: e.message };
     }
   };
 

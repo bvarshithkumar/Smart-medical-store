@@ -230,10 +230,27 @@ const Products = () => {
   const pages = Math.ceil(filtered.length / PER_PAGE);
   const paged = filtered.slice((page - 1) * PER_PAGE, page * PER_PAGE);
 
-  const openAdd = () => { setForm(EMPTY_PRODUCT); setModal('add'); };
-  const openEdit = (p) => { setForm({ ...p }); setSelected(p); setModal('edit'); };
-  const openDelete = (p) => { setSelected(p); setModal('delete'); };
-  const closeModal = () => { setModal(null); setSelected(null); };
+  const openAdd = () => {
+    console.log("Add Product clicked - Opening modal");
+    setForm(EMPTY_PRODUCT);
+    setModal('add');
+  };
+  const openEdit = (p) => {
+    console.log("Edit clicked - Opening modal", p);
+    setForm({ ...p });
+    setSelected(p);
+    setModal('edit');
+  };
+  const openDelete = (p) => {
+    console.log("Delete clicked - Opening modal", p);
+    setSelected(p);
+    setModal('delete');
+  };
+  const closeModal = () => {
+    console.log("Closing modal and resetting selected product");
+    setModal(null);
+    setSelected(null);
+  };
 
   // Validation & Saving
   const handleSave = async () => {
@@ -309,6 +326,7 @@ const Products = () => {
   };
 
   const duplicate = async (p) => {
+    console.log("Copy clicked - Duplicating product", p);
     const newSku = `SKU-${(p.name || 'MED').substring(0,3).toUpperCase()}-${Math.floor(10000 + Math.random() * 90000)}`;
     const duplicatedData = {
       ...p,
@@ -318,9 +336,11 @@ const Products = () => {
     };
     const res = await addProduct(duplicatedData);
     if (res?.success) {
+      console.log("Product duplicated successfully");
       alert('Product duplicated successfully!');
     } else {
-      alert('Failed to duplicate product: ' + (res?.error || 'Unknown error'));
+      console.error("Duplicate product failed error payload:", res?.error);
+      alert('Failed to duplicate product: ' + (res?.error || 'Unknown database constraint error occurred'));
     }
   };
 
@@ -477,7 +497,7 @@ const Products = () => {
   };
 
   const ProductModal = () => (
-    <div className="modal-overlay" onClick={closeModal}>
+    <div className="modal-overlay" onClick={closeModal} style={{ opacity: 1, pointerEvents: 'auto', display: 'flex', position: 'fixed', inset: 0, zIndex: 10000, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', alignItems: 'center', justifyContent: 'center' }}>
       <div className="modal modal-lg" onClick={e => e.stopPropagation()}>
         <div className="modal-header">
           <div>
@@ -751,7 +771,7 @@ const Products = () => {
       {/* Modals */}
       {(modal === 'add' || modal === 'edit') && <ProductModal />}
       {modal === 'delete' && (
-        <div className="modal-overlay" onClick={closeModal}>
+        <div className="modal-overlay" onClick={closeModal} style={{ opacity: 1, pointerEvents: 'auto', display: 'flex', position: 'fixed', inset: 0, zIndex: 10000, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', alignItems: 'center', justifyContent: 'center' }}>
           <div className="modal modal-sm" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <div><h2>Delete Product</h2><p>This action cannot be undone.</p></div>
@@ -776,7 +796,7 @@ const Products = () => {
 
       {/* Bulk Upload Modal */}
       {bulkModalOpen && (
-        <div className="modal-overlay" onClick={() => setBulkModalOpen(false)}>
+        <div className="modal-overlay" onClick={() => { console.log("Closing Bulk Upload modal"); setBulkModalOpen(false); }} style={{ opacity: 1, pointerEvents: 'auto', display: 'flex', position: 'fixed', inset: 0, zIndex: 10000, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', alignItems: 'center', justifyContent: 'center' }}>
           <div className="modal modal-lg" onClick={e => e.stopPropagation()} style={{ maxHeight: '85vh', display: 'flex', flexDirection: 'column' }}>
             <div className="modal-header" style={{ flexShrink: 0 }}>
               <div>
