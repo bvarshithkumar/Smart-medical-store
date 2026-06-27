@@ -170,6 +170,51 @@ export const ReservationProvider = ({ children }) => {
 
         if (!orderError) {
           console.log('[confirmReservation] Database INSERT succeeded on table public.pickup_reservations:', data);
+          
+          // Reduce stock for cart items and log transaction
+          for (const item of cartItems) {
+            const prodId = item.id || item.product_id;
+            const itemQty = item.qty || item.quantity || item.count || 0;
+            if (prodId && itemQty > 0) {
+              try {
+                const { data: pData } = await supabase
+                  .from('products')
+                  .select('stock_quantity, name')
+                  .eq('id', prodId)
+                  .single();
+
+                if (pData) {
+                  const prevStock = pData.stock_quantity ?? 0;
+                  const newStock = Math.max(0, prevStock - itemQty);
+                  
+                  await supabase
+                    .from('products')
+                    .update({ stock_quantity: newStock })
+                    .eq('id', prodId);
+
+                  // Insert into inventory_logs table
+                  try {
+                    await supabase.from('inventory_logs').insert({
+                      product_id: prodId,
+                      product_name: pData.name,
+                      action: 'Stock Removed',
+                      quantity: itemQty,
+                      username: customerName || 'Customer',
+                      reason: `Reservation Confirmed (Ref: ${testId})`,
+                      previous_stock: prevStock,
+                      new_stock: newStock,
+                      created_at: new Date().toISOString()
+                    });
+                  } catch (logErr) {
+                    console.warn('[ReservationContext] Failed to save inventory log:', logErr);
+                  }
+                }
+              } catch (err) {
+                console.error('[ReservationContext] Failed to reduce stock for:', prodId, err);
+              }
+            }
+          }
+
           finalOrderId = testId;
           success = true;
           if (userId) {

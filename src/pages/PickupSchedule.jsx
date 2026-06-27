@@ -609,6 +609,50 @@ const PickupSchedule = () => {
         }
         console.log('[PickupSchedule] Reservation inserted successfully.');
 
+        // Reduce stock and log transaction
+        for (const item of medicinesList) {
+          const prodId = item.id;
+          const itemQty = item.qty || 0;
+          if (prodId && itemQty > 0) {
+            try {
+              const { data: pData } = await supabase
+                .from('products')
+                .select('stock_quantity, name')
+                .eq('id', prodId)
+                .single();
+
+              if (pData) {
+                const prevStock = pData.stock_quantity ?? 0;
+                const newStock = Math.max(0, prevStock - itemQty);
+                
+                await supabase
+                  .from('products')
+                  .update({ stock_quantity: newStock })
+                  .eq('id', prodId);
+
+                // Insert into inventory_logs table
+                try {
+                  await supabase.from('inventory_logs').insert({
+                    product_id: prodId,
+                    product_name: pData.name,
+                    action: 'Stock Removed',
+                    quantity: itemQty,
+                    username: customerName.trim() || 'Customer',
+                    reason: `Prescription Accepted (Ref: ${finalOrderId})`,
+                    previous_stock: prevStock,
+                    new_stock: newStock,
+                    created_at: new Date().toISOString()
+                  });
+                } catch (logErr) {
+                  console.warn('[PickupSchedule] Failed to save inventory log:', logErr);
+                }
+              }
+            } catch (err) {
+              console.error('[PickupSchedule] Failed to reduce stock for:', prodId, err);
+            }
+          }
+        }
+
         // ── 8. Update prescription status ──────────────────────────────
         const { error: rxUpdateErr } = await supabase
           .from('prescriptions')

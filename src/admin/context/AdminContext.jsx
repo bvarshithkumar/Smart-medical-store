@@ -164,7 +164,42 @@ export const AdminProvider = ({ children }) => {
         .select('*')
         .order('created_at', { ascending: false })
         .abortSignal(controller.signal);
-      if (prodData) setProducts(prodData.map(mapProduct));
+      
+      const mappedInventoryList = [];
+      if (prodData) {
+        setProducts(prodData.map(mapProduct));
+        
+        // Map products database to Inventory format
+        prodData.forEach(p => {
+          const mfgDate = p.mfg_date || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+          const expiryDate = p.expiry_date || new Date(Date.now() + 180 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+          const supplier = p.supplier || 'Venkateshwara Wholesalers';
+          const batchNo = p.batch_no || `B-${(p.name || 'MED').substring(0,3).toUpperCase()}101`;
+          const reorderLevel = p.reorder_level || 10;
+          
+          let brand = 'Generic Brand';
+          if (p.id === DOLO_UUID) brand = 'Micro Labs';
+          else if (p.id === ZINCOVIT_UUID) brand = 'Abbott';
+          else if (p.id === COUGH_UUID) brand = 'Kof-Kure Pharma';
+          else if (p.id === PAIN_UUID) brand = 'Relief-Max Therapeutics';
+
+          mappedInventoryList.push({
+            id: p.id,
+            name: p.name,
+            brand,
+            category: p.category || 'Essential Medicine',
+            stock: p.stock_quantity ?? 0,
+            reorderLevel,
+            supplier,
+            batchNo,
+            mfgDate,
+            expiryDate,
+            lastUpdated: p.last_updated ? new Date(p.last_updated).toLocaleDateString() : new Date().toLocaleDateString(),
+            image: p.image_url || '/images/cat_medicines.png'
+          });
+        });
+        setInventory(mappedInventoryList);
+      }
 
       // 2. Fetch pickup reservations (active ones)
       const { data: resData } = await supabase
@@ -239,10 +274,60 @@ export const AdminProvider = ({ children }) => {
         })));
       }
 
-      // 4. Prescriptions — delegated to fetchPrescriptions
+      // 4. Fetch inventory logs from the database
+      try {
+        const { data: logsData } = await supabase
+          .from('inventory_logs')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .abortSignal(controller.signal);
+
+        if (logsData && logsData.length > 0) {
+          setInventoryLogs(logsData.map(log => ({
+            id: log.id,
+            product: log.product_name,
+            action: log.action,
+            quantity: log.quantity,
+            user: log.username || 'System',
+            reason: log.reason || '',
+            date: log.created_at ? log.created_at.split('T')[0] : new Date().toISOString().split('T')[0],
+            time: log.created_at ? new Date(log.created_at).toTimeString().slice(0, 5) : new Date().toTimeString().slice(0, 5),
+            previousStock: log.previous_stock,
+            newStock: log.new_stock
+          })));
+        } else {
+          // Dynamic seeding logs fallback if empty
+          const fallbackLogs = mappedInventoryList.map(item => ({
+            id: `INIT-${item.id}`,
+            product: item.name,
+            action: 'Stock Added',
+            quantity: item.stock,
+            user: 'System',
+            reason: 'Database Synchronization',
+            date: new Date().toISOString().split('T')[0],
+            time: '08:00'
+          }));
+          setInventoryLogs(fallbackLogs);
+        }
+      } catch (logErr) {
+        console.warn('[AdminContext] Failed to load inventory logs, using initial sync logs.');
+        const fallbackLogs = mappedInventoryList.map(item => ({
+          id: `INIT-${item.id}`,
+          product: item.name,
+          action: 'Stock Added',
+          quantity: item.stock,
+          user: 'System',
+          reason: 'Database Synchronization',
+          date: new Date().toISOString().split('T')[0],
+          time: '08:00'
+        }));
+        setInventoryLogs(fallbackLogs);
+      }
+
+      // 5. Prescriptions — delegated to fetchPrescriptions
       await fetchPrescriptions();
 
-      // 5. Fetch profiles for customer count
+      // 6. Fetch profiles for customer count
       const { data: custData } = await supabase
         .from('profiles')
         .select('*')
@@ -293,6 +378,32 @@ export const AdminProvider = ({ children }) => {
         { event: '*', schema: 'public', table: 'pickup_reservations' },
         (payload) => {
           console.log('[AdminContext] Realtime reservation change:', payload);
+          fetchAllData();
+        }
+      )
+      .subscribe();
+
+    // Realtime subscription — refetch when products or inventory change
+    const prodChannel = supabase
+      .channel('products-admin')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'products' },
+        (payload) => {
+          console.log('[AdminContext] Realtime product change:', payload);
+          fetchAllData();
+        }
+      )
+      .subscribe();
+
+    // Realtime subscription — refetch when inventory logs are inserted
+    const invLogChannel = supabase
+      .channel('inventory-logs-admin')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'inventory_logs' },
+        (payload) => {
+          console.log('[AdminContext] Realtime inventory log change:', payload);
           fetchAllData();
         }
       )
@@ -367,6 +478,8 @@ export const AdminProvider = ({ children }) => {
     return () => {
       supabase.removeChannel(rxChannel);
       supabase.removeChannel(resChannel);
+      supabase.removeChannel(prodChannel);
+      supabase.removeChannel(invLogChannel);
       supabase.removeChannel(notifChannel);
       supabase.removeChannel(chatChannel);
     };
@@ -573,23 +686,66 @@ export const AdminProvider = ({ children }) => {
   };
 
   // ── Inventory CRUD ────────────────────────────────────────
-  const adjustStock = (id, delta, note) => {
-    const item = inventory.find(i => i.id === id);
-    if (!item) return;
-    const newQty = Math.max(0, item.stock + delta);
-    setInventory(prev => prev.map(i => i.id === id ? { ...i, stock: newQty, lastUpdated: new Date().toISOString().split('T')[0] } : i));
-    setProducts(prev => prev.map(p => p.id === id ? { ...p, stock: newQty } : p));
-    const logEntry = {
-      id: `LOG${Date.now()}`,
-      product: item.name,
-      action: delta > 0 ? 'Stock Added' : 'Stock Removed',
-      quantity: Math.abs(delta),
-      user: 'Admin',
-      date: new Date().toISOString().split('T')[0],
-      time: new Date().toTimeString().slice(0, 5),
-    };
-    setInventoryLogs(prev => [logEntry, ...prev]);
-    addLog(`Updated stock for ${item.name} (${delta > 0 ? '+' : ''}${delta} units)`, 'Inventory');
+  const adjustStock = async (id, delta, reason = '', type = 'add') => {
+    try {
+      // 1. Fetch current stock
+      const { data: pData, error: fetchErr } = await supabase
+        .from('products')
+        .select('stock_quantity, name')
+        .eq('id', id)
+        .single();
+        
+      if (fetchErr || !pData) throw new Error('Product not found: ' + fetchErr?.message);
+      
+      const currentStock = pData.stock_quantity ?? 0;
+      let newStock = currentStock;
+      let actionLabel = 'Stock Adjusted';
+      let qtyChanged = delta;
+
+      if (type === 'add') {
+        newStock = currentStock + delta;
+        actionLabel = 'Stock Added';
+      } else if (type === 'remove') {
+        newStock = Math.max(0, currentStock - delta);
+        actionLabel = 'Stock Removed';
+      } else if (type === 'set') {
+        newStock = Math.max(0, delta);
+        qtyChanged = newStock - currentStock;
+        actionLabel = qtyChanged >= 0 ? 'Stock Added' : 'Stock Removed';
+      }
+
+      // 2. Update DB products table
+      const { error: updateErr } = await supabase
+        .from('products')
+        .update({ stock_quantity: newStock, last_updated: new Date().toISOString() })
+        .eq('id', id);
+        
+      if (updateErr) throw updateErr;
+
+      // 3. Insert log into DB inventory_logs
+      try {
+        await supabase.from('inventory_logs').insert({
+          product_id: id,
+          product_name: pData.name,
+          action: actionLabel,
+          quantity: Math.abs(qtyChanged),
+          username: 'Admin',
+          reason: reason || (type === 'set' ? 'Manual stock replacement' : 'Manual adjustment'),
+          previous_stock: currentStock,
+          new_stock: newStock,
+          created_at: new Date().toISOString()
+        });
+      } catch (logErr) {
+        console.warn('[AdminContext] Failed to save inventory log:', logErr);
+      }
+
+      // 4. Refetch data to sync UI
+      await fetchAllData();
+      addLog(`Stock adjusted for ${pData.name} (${qtyChanged >= 0 ? '+' : ''}${qtyChanged} units)`, 'Inventory');
+    } catch (err) {
+      console.error('[AdminContext] adjustStock failed:', err);
+      alert('Failed to adjust stock: ' + err.message);
+    }
   };
 
   // ── Coupon CRUD ───────────────────────────────────────────
