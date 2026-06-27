@@ -15,6 +15,116 @@ const fmt = (d) => d ? new Date(d).toLocaleDateString('en-IN', { day: '2-digit',
 const fmtTime = (d) => d ? new Date(d).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) : '';
 const fmtDateTime = (d) => d ? `${fmt(d)}, ${fmtTime(d)}` : '—';
 
+/* ─── Customer Type Classification ───────────────────────────── */
+const CUSTOMER_TYPES = {
+  vip:      { key: 'vip',      label: 'VIP',      icon: '👑', bg: 'rgba(245,158,11,0.18)', color: '#f59e0b', border: 'rgba(245,158,11,0.4)',  shadow: 'rgba(245,158,11,0.25)' },
+  frequent: { key: 'frequent', label: 'Frequent',  icon: '⭐', bg: 'rgba(139,92,246,0.18)', color: '#a78bfa', border: 'rgba(139,92,246,0.4)',  shadow: 'rgba(139,92,246,0.25)' },
+  regular:  { key: 'regular',  label: 'Regular',   icon: '👤', bg: 'rgba(16,185,129,0.18)', color: '#10b981', border: 'rgba(16,185,129,0.4)',  shadow: 'rgba(16,185,129,0.25)' },
+  new:      { key: 'new',      label: 'New',       icon: '🆕', bg: 'rgba(59,130,246,0.18)', color: '#60a5fa', border: 'rgba(59,130,246,0.4)',  shadow: 'rgba(59,130,246,0.25)' },
+  inactive: { key: 'inactive', label: 'Inactive',  icon: '😴', bg: 'rgba(148,163,184,0.18)',color: '#94a3b8', border: 'rgba(148,163,184,0.4)', shadow: 'rgba(148,163,184,0.15)' },
+};
+
+/**
+ * Pure classification function — never reads from DB, always re-derives from stats.
+ * Priority (highest wins): VIP → Inactive → Frequent → Regular → New
+ */
+const getCustomerType = ({ ordersCount, totalSpent, lastOrderDate, registeredAt }) => {
+  const now = Date.now();
+  const daysSinceRegistered = registeredAt ? (now - new Date(registeredAt).getTime()) / 86400000 : 999;
+  const daysSinceLastOrder  = lastOrderDate ? (now - new Date(lastOrderDate).getTime()) / 86400000 : 999;
+
+  // 1. VIP — highest priority
+  if (ordersCount > 15 || totalSpent > 10000) {
+    return {
+      ...CUSTOMER_TYPES.vip,
+      tooltip: `VIP Customer\n${ordersCount} Orders\n₹${totalSpent.toLocaleString('en-IN')} Total Spent`,
+    };
+  }
+
+  // 2. Inactive — no order in last 90 days
+  if (daysSinceLastOrder > 90 && ordersCount > 0) {
+    return {
+      ...CUSTOMER_TYPES.inactive,
+      tooltip: `Inactive Customer\n${ordersCount} Orders\nLast Order: ${lastOrderDate ? fmt(lastOrderDate) : 'Never'}`,
+    };
+  }
+
+  // 3. Frequent — 6–15 orders AND spent > ₹2,000
+  if (ordersCount >= 6 && ordersCount <= 15 && totalSpent > 2000) {
+    return {
+      ...CUSTOMER_TYPES.frequent,
+      tooltip: `Frequent Customer\n${ordersCount} Orders\n₹${totalSpent.toLocaleString('en-IN')} Total Spent`,
+    };
+  }
+
+  // 4. Regular — 2–5 orders AND ordered in last 60 days
+  if (ordersCount >= 2 && ordersCount <= 5 && daysSinceLastOrder <= 60) {
+    return {
+      ...CUSTOMER_TYPES.regular,
+      tooltip: `Regular Customer\n${ordersCount} Orders\nLast Order: ${lastOrderDate ? fmt(lastOrderDate) : 'Never'}`,
+    };
+  }
+
+  // 5. New — registered within 7 days AND ≤1 order
+  if (daysSinceRegistered <= 7 && ordersCount <= 1) {
+    return {
+      ...CUSTOMER_TYPES.new,
+      tooltip: `New Customer\nJoined ${Math.floor(daysSinceRegistered)} day(s) ago\n${ordersCount} Order(s)`,
+    };
+  }
+
+  // Default: New for zero-order customers, Inactive for others with no recent activity
+  if (ordersCount === 0) {
+    return {
+      ...CUSTOMER_TYPES.new,
+      tooltip: `New Customer\nNo orders yet\nJoined ${fmt(registeredAt)}`,
+    };
+  }
+
+  return {
+    ...CUSTOMER_TYPES.inactive,
+    tooltip: `Inactive Customer\n${ordersCount} Orders\nLast Order: ${lastOrderDate ? fmt(lastOrderDate) : 'Never'}`,
+  };
+};
+
+/* ─── CustomerTypeBadge ───────────────────────────────────────── */
+const CustomerTypeBadge = ({ type, style: extraStyle }) => {
+  if (!type) return null;
+  const BADGE_CSS = `
+    .ctype-badge { position:relative; display:inline-flex; align-items:center; gap:5px;
+      padding:4px 10px; border-radius:20px; font-size:11px; font-weight:700;
+      border:1px solid; cursor:default; white-space:nowrap;
+      animation:ctypePop 0.25s cubic-bezier(0.34,1.56,0.64,1) both;
+      transition:box-shadow 0.2s, transform 0.2s; }
+    .ctype-badge:hover { transform:translateY(-1px); }
+    .ctype-tooltip { position:absolute; bottom:calc(100% + 8px); left:50%; transform:translateX(-50%);
+      background:#1e293b; color:#f1f5f9; border:1px solid rgba(255,255,255,0.1);
+      padding:8px 12px; border-radius:8px; font-size:12px; font-weight:500; white-space:pre;
+      pointer-events:none; opacity:0; transition:opacity 0.15s; z-index:9999; line-height:1.6;
+      box-shadow:0 8px 24px rgba(0,0,0,0.4); min-width:160px; text-align:center; }
+    .ctype-badge:hover .ctype-tooltip { opacity:1; }
+    @keyframes ctypePop { from { opacity:0; transform:scale(0.8); } to { opacity:1; transform:scale(1); } }
+  `;
+  return (
+    <>
+      <style>{BADGE_CSS}</style>
+      <span
+        className="ctype-badge"
+        style={{
+          background: type.bg, color: type.color,
+          borderColor: type.border,
+          boxShadow: `0 2px 8px ${type.shadow}`,
+          ...extraStyle
+        }}
+      >
+        <span>{type.icon}</span>
+        <span>{type.label}</span>
+        <span className="ctype-tooltip">{type.tooltip}</span>
+      </span>
+    </>
+  );
+};
+
 const STATUS_COLORS = {
   pending:           { bg: 'rgba(245,158,11,0.15)', color: '#f59e0b', label: 'Pending' },
   'under review':    { bg: 'rgba(99,102,241,0.15)', color: '#6366f1', label: 'Under Review' },
@@ -557,7 +667,18 @@ const CustomerCRMModal = ({ customer, onClose, onDeactivate, onDelete }) => {
             {initials}
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
-            <h2 style={{ margin: 0, fontSize: 20, fontWeight: 800 }}>{customer?.full_name || 'Customer'}</h2>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 2 }}>
+              <h2 style={{ margin: 0, fontSize: 20, fontWeight: 800 }}>{customer?.full_name || 'Customer'}</h2>
+              {/* Customer type badge in CRM drawer — computed inline from crmData */}
+              {crmData && !crmData.loading && (() => {
+                const totalSpent = crmData.reservations.reduce((s, o) => s + Number(o.reservation.total_amount || 0), 0);
+                const ordersCount = crmData.reservations.length;
+                const sorted = crmData.reservations.map(o => o.reservation.created_at).filter(Boolean).sort((a,b) => new Date(b)-new Date(a));
+                const lastOrderDate = sorted[0] || null;
+                const ct = getCustomerType({ ordersCount, totalSpent, lastOrderDate, registeredAt: customer?.created_at });
+                return <CustomerTypeBadge type={ct} style={{ fontSize: 12 }} />;
+              })()}
+            </div>
             <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', marginTop: 6 }}>
               <span style={{ display: 'flex', alignItems: 'center', gap: 5, fontSize: 13, color: 'var(--text-muted)' }}>
                 <Phone size={13} /> {phone}
@@ -880,12 +1001,13 @@ const CustomerCRMModal = ({ customer, onClose, onDeactivate, onDelete }) => {
 
 /* ─── Main Customers Component ────────────────────────────────── */
 const Customers = () => {
-  const { orders, prescriptions } = useAdmin();
+  const { orders, prescriptions, allReservations } = useAdmin();
   const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [selected, setSelected] = useState(null);
   const [showDeactivated, setShowDeactivated] = useState(false);
+  const [typeFilter, setTypeFilter] = useState('all');
 
   const fetchCustomers = useCallback(async () => {
     try {
@@ -937,19 +1059,35 @@ const Customers = () => {
   }, []);
 
   const getEmail = (c) => c?.email || (c?.full_name ? `${c.full_name.toLowerCase().replace(/[^a-z0-9]/g, '')}@example.com` : '—');
-  const getAddress = (c) => c?.address || '—';
 
   const getStats = (c) => {
-    const customerOrders = (orders || []).filter(o => o.user_id === c.id);
+    // Use allReservations (pickup_reservations) as the primary order source
+    const resOrders = (allReservations || []).filter(o => o.user_id === c.id);
+    // Also include orders table data for completeness
+    const tableOrders = (orders || []).filter(o => o.user_id === c.id);
+    // Merge both, prefer reservation data since it's the main flow
+    const allCustomerOrders = resOrders.length > 0 ? resOrders : tableOrders;
     const customerRx = (prescriptions || []).filter(p => p.userId === c.id);
+
+    const ordersCount = allCustomerOrders.length;
+    const totalSpent  = allCustomerOrders.reduce((s, o) => s + Number(o.total || o.total_amount || 0), 0);
+
+    // Find the most recent order date (from created_at)
+    const sortedDates = allCustomerOrders
+      .map(o => o.created_at)
+      .filter(Boolean)
+      .sort((a, b) => new Date(b) - new Date(a));
+    const lastOrderDate = sortedDates[0] || null;
+
     return {
-      ordersCount: customerOrders.length,
-      totalSpent: customerOrders.reduce((s, o) => s + (o.total || 0), 0),
+      ordersCount,
+      totalSpent,
       prescriptionsCount: customerRx.length,
+      lastOrderDate,
     };
   };
 
-  const filtered = customers
+  const filteredBase = customers
     .filter(c => showDeactivated ? true : c.role !== 'deactivated')
     .filter(c => {
       const q = search.toLowerCase();
@@ -960,7 +1098,24 @@ const Customers = () => {
       );
     });
 
+  // Apply customer type filter
+  const filtered = typeFilter === 'all'
+    ? filteredBase
+    : filteredBase.filter(c => {
+        const s = getStats(c);
+        const ct = getCustomerType({ ordersCount: s.ordersCount, totalSpent: s.totalSpent, lastOrderDate: s.lastOrderDate, registeredAt: c.created_at });
+        return ct.key === typeFilter;
+      });
+
   const deactivatedCount = customers.filter(c => c.role === 'deactivated').length;
+
+  // Count per type for filter pill badges
+  const typeCounts = filteredBase.reduce((acc, c) => {
+    const s = getStats(c);
+    const ct = getCustomerType({ ordersCount: s.ordersCount, totalSpent: s.totalSpent, lastOrderDate: s.lastOrderDate, registeredAt: c.created_at });
+    acc[ct.key] = (acc[ct.key] || 0) + 1;
+    return acc;
+  }, {});
 
   return (
     <AdminLayout>
@@ -989,6 +1144,45 @@ const Customers = () => {
         </div>
       </div>
 
+      {/* Customer Type Filter */}
+      <div style={{ display: 'flex', gap: 6, marginBottom: 12, flexWrap: 'wrap' }}>
+        {[
+          { key: 'all', label: 'All', icon: '' },
+          { key: 'new', ...CUSTOMER_TYPES.new },
+          { key: 'regular', ...CUSTOMER_TYPES.regular },
+          { key: 'frequent', ...CUSTOMER_TYPES.frequent },
+          { key: 'vip', ...CUSTOMER_TYPES.vip },
+          { key: 'inactive', ...CUSTOMER_TYPES.inactive },
+        ].map(t => {
+          const isActive = typeFilter === t.key;
+          const count = t.key === 'all' ? filteredBase.length : (typeCounts[t.key] || 0);
+          return (
+            <button
+              key={t.key}
+              onClick={() => setTypeFilter(t.key)}
+              style={{
+                display: 'inline-flex', alignItems: 'center', gap: 6,
+                padding: '6px 14px', borderRadius: 20, fontSize: 12, fontWeight: 700,
+                cursor: 'pointer', transition: 'all 0.15s', border: '1px solid',
+                background: isActive ? (t.bg || 'var(--cyan)') : 'var(--bg-elevated)',
+                color: isActive ? (t.color || 'var(--text-primary)') : 'var(--text-muted)',
+                borderColor: isActive ? (t.border || 'var(--cyan)') : 'var(--border)',
+                boxShadow: isActive && t.shadow ? `0 2px 10px ${t.shadow}` : 'none',
+                transform: isActive ? 'translateY(-1px)' : 'none',
+              }}
+            >
+              {t.icon && <span>{t.icon}</span>}
+              {t.key === 'all' ? 'All' : t.label}
+              <span style={{
+                background: isActive ? 'rgba(255,255,255,0.25)' : 'var(--bg-card)',
+                color: isActive ? (t.color || '#fff') : 'var(--text-muted)',
+                borderRadius: 10, padding: '1px 7px', fontSize: 11, fontWeight: 800
+              }}>{count}</span>
+            </button>
+          );
+        })}
+      </div>
+
       <div className="filter-bar" style={{ marginBottom: 16 }}>
         <div className="filter-search">
           <Search size={14} className="filter-search-icon" />
@@ -998,7 +1192,7 @@ const Customers = () => {
             onChange={e => setSearch(e.target.value)}
           />
         </div>
-        <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>{filtered.length} customers</span>
+        <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>{filtered.length} customer{filtered.length !== 1 ? 's' : ''}</span>
       </div>
 
       <div className="table-card">
@@ -1015,7 +1209,7 @@ const Customers = () => {
                 <th>Customer</th>
                 <th>Phone</th>
                 <th>Email</th>
-                <th>Location</th>
+                <th>Customer Type</th>
                 <th>Orders</th>
                 <th>Total Spent</th>
                 <th>Prescriptions</th>
@@ -1028,6 +1222,7 @@ const Customers = () => {
                 <tr><td colSpan={9} style={{ textAlign: 'center', padding: 32, color: 'var(--text-muted)' }}>No customers found</td></tr>
               ) : filtered.map(c => {
                 const s = getStats(c);
+                const ct = getCustomerType({ ordersCount: s.ordersCount, totalSpent: s.totalSpent, lastOrderDate: s.lastOrderDate, registeredAt: c.created_at });
                 const isDeactivated = c.role === 'deactivated';
                 return (
                   <tr key={c.id} style={{ opacity: isDeactivated ? 0.6 : 1 }}>
@@ -1046,7 +1241,7 @@ const Customers = () => {
                     </td>
                     <td className="muted">{c.phone || '—'}</td>
                     <td className="muted" style={{ maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis' }}>{getEmail(c)}</td>
-                    <td className="muted">{getAddress(c)}</td>
+                    <td><CustomerTypeBadge type={ct} /></td>
                     <td><span style={{ fontWeight: 700, color: 'var(--cyan)' }}>{s.ordersCount}</span></td>
                     <td style={{ fontWeight: 600 }}>₹{s.totalSpent.toLocaleString('en-IN')}</td>
                     <td><span style={{ fontWeight: 700, color: 'var(--purple)' }}>{s.prescriptionsCount}</span></td>
