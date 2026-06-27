@@ -1,6 +1,6 @@
 import React, { createContext, useState, useEffect, useContext, useCallback } from 'react';
 import { supabase } from '../../lib/supabase';
-import { mapProduct } from '../../services/medicineService';
+import { mapProduct, DOLO_UUID, ZINCOVIT_UUID, COUGH_UUID, PAIN_UUID } from '../../services/medicineService';
 import {
   mockCustomers,
   mockInventory, mockInventoryLogs, mockCoupons, mockNotifications,
