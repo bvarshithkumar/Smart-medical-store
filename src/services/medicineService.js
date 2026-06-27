@@ -20,28 +20,28 @@ export const mapProduct = (p) => {
   const discountPercent = discountPercentage > 0 ? `${discountPercentage}% OFF` : '';
 
   // Map to visual components
-  let brand = 'Micro Labs';
+  let brand = p.brand || 'Generic Brand';
   let packInfo = 'Strip of 15 Tablets';
   let similar = [];
   let boughtTogether = [];
 
   if (p.id === DOLO_UUID) {
-    brand = 'Micro Labs';
+    if (!p.brand) brand = 'Micro Labs';
     packInfo = 'Strip of 15 Tablets';
     similar = [ZINCOVIT_UUID, COUGH_UUID, PAIN_UUID];
     boughtTogether = [ZINCOVIT_UUID, COUGH_UUID];
   } else if (p.id === ZINCOVIT_UUID) {
-    brand = 'Abbott';
+    if (!p.brand) brand = 'Abbott';
     packInfo = 'Bottle of 30 Tablets';
     similar = [DOLO_UUID, PAIN_UUID, COUGH_UUID];
     boughtTogether = [DOLO_UUID, PAIN_UUID];
   } else if (p.id === COUGH_UUID) {
-    brand = 'Kof-Kure Pharma';
+    if (!p.brand) brand = 'Kof-Kure Pharma';
     packInfo = 'Bottle of 100 ml';
     similar = [DOLO_UUID, ZINCOVIT_UUID, PAIN_UUID];
     boughtTogether = [DOLO_UUID, ZINCOVIT_UUID];
   } else if (p.id === PAIN_UUID) {
-    brand = 'Relief-Max Therapeutics';
+    if (!p.brand) brand = 'Relief-Max Therapeutics';
     packInfo = 'Tube of 30 gm';
     similar = [DOLO_UUID, ZINCOVIT_UUID, COUGH_UUID];
     boughtTogether = [DOLO_UUID, ZINCOVIT_UUID];
@@ -51,6 +51,16 @@ export const mapProduct = (p) => {
     id: p.id,
     name: p.name,
     brand,
+    genericName: p.generic_name || p.name,
+    generic_name: p.generic_name || p.name,
+    manufacturer: p.manufacturer || 'Venkateshwara Pharma',
+    sku: p.sku || '',
+    batchNo: p.batch_no || p.batch_number || 'B-GEN999',
+    batch_no: p.batch_no || p.batch_number || 'B-GEN999',
+    expiryDate: p.expiry_date || '',
+    expiry_date: p.expiry_date || '',
+    reorderLevel: p.reorder_level || 10,
+    reorder_level: p.reorder_level || 10,
     packInfo,
     mrp,
     selling_price: sellingPrice,
