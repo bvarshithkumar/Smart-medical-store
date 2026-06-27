@@ -6,7 +6,7 @@ import {
   Calendar, TrendingUp, MessageSquare, X, ChevronDown, ChevronUp,
   Download, ExternalLink, ZoomIn, ZoomOut, RotateCw, Printer,
   Package, FileCheck, AlertCircle, Loader2, User, CreditCard,
-  CheckCircle, XCircle, RefreshCw
+  CheckCircle, XCircle, RefreshCw, UserX, ShieldOff, ShieldCheck, Trash2
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 
@@ -319,13 +319,52 @@ const OrderDetailPanel = ({ order }) => {
   );
 };
 
+/* ─── Confirm Dialog ──────────────────────────────────────────── */
+const ConfirmDialog = ({ open, title, message, confirmLabel, confirmColor = '#ef4444', onConfirm, onCancel, loading }) => {
+  if (!open) return null;
+  return (
+    <div
+      onClick={e => e.stopPropagation()}
+      style={{
+        position: 'fixed', inset: 0, zIndex: 20000, display: 'flex',
+        alignItems: 'center', justifyContent: 'center',
+        background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)'
+      }}
+    >
+      <div style={{
+        background: 'var(--bg-card)', border: '1px solid var(--border)', borderRadius: 16,
+        padding: '28px 32px', maxWidth: 420, width: '90vw',
+        boxShadow: '0 20px 60px rgba(0,0,0,0.5)', animation: 'fadeIn 0.15s ease'
+      }}>
+        <style>{`@keyframes fadeIn { from { opacity:0; transform:scale(0.96); } to { opacity:1; transform:scale(1); } }`}</style>
+        <h3 style={{ margin: '0 0 8px', fontSize: 17, fontWeight: 800 }}>{title}</h3>
+        <p style={{ margin: '0 0 24px', fontSize: 14, color: 'var(--text-secondary)', lineHeight: 1.6 }}>{message}</p>
+        <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+          <button className="btn btn-secondary" onClick={onCancel} disabled={loading}>Cancel</button>
+          <button
+            className="btn"
+            onClick={onConfirm}
+            disabled={loading}
+            style={{ background: confirmColor, color: '#fff', border: 'none', display: 'flex', alignItems: 'center', gap: 6 }}
+          >
+            {loading && <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} />}
+            {confirmLabel}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 /* ─── CustomerCRMModal (MUST be outside Customers to avoid remount) */
-const CustomerCRMModal = ({ customer, onClose }) => {
+const CustomerCRMModal = ({ customer, onClose, onDeactivate, onDelete }) => {
   const [crmData, setCrmData] = useState({ reservations: [], loading: true, error: null });
   const [search, setSearch] = useState('');
   const [dateFilter, setDateFilter] = useState('all');
   const [activePanel, setActivePanel] = useState(null); // { type: 'details'|'prescription'|'chat', order }
   const [expandedOrder, setExpandedOrder] = useState(null);
+  const [confirm, setConfirm] = useState(null); // { type: 'deactivate'|'delete' }
+  const [actionLoading, setActionLoading] = useState(false);
 
   /* Fetch all data for this customer */
   const fetchCRMData = useCallback(async (customerId) => {
@@ -458,6 +497,24 @@ const CustomerCRMModal = ({ customer, onClose }) => {
 
   const closePanel = () => setActivePanel(null);
 
+  const isDeactivated = customer?.role === 'deactivated';
+
+  const handleConfirmAction = async () => {
+    if (!confirm) return;
+    setActionLoading(true);
+    try {
+      if (confirm.type === 'deactivate') {
+        await onDeactivate(customer, isDeactivated);
+      } else if (confirm.type === 'delete') {
+        await onDelete(customer);
+        onClose();
+      }
+    } finally {
+      setActionLoading(false);
+      setConfirm(null);
+    }
+  };
+
   return (
     <div
       onClick={onClose}
@@ -486,6 +543,7 @@ const CustomerCRMModal = ({ customer, onClose }) => {
           .crm-action-btn:disabled { opacity:0.4; cursor:not-allowed; }
           .crm-metric { display:flex; flex-direction:column; gap:4px; padding:14px 20px; border-right:1px solid var(--border); }
           .crm-metric:last-child { border-right:none; }
+          .crm-danger-btn { display:inline-flex; align-items:center; gap:6px; padding:7px 14px; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer; border:1px solid; transition:all 0.15s; white-space:nowrap; }
         `}</style>
 
         {/* Header */}
@@ -522,12 +580,41 @@ const CustomerCRMModal = ({ customer, onClose }) => {
               )}
             </div>
           </div>
-          <button
-            onClick={onClose}
-            style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--bg-elevated)', border: '1px solid var(--border)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', flexShrink: 0 }}
-          >
-            <X size={18} />
-          </button>
+          {/* Account Actions */}
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center', flexShrink: 0 }}>
+            {isDeactivated && (
+              <span style={{ padding: '4px 10px', borderRadius: 20, background: 'rgba(239,68,68,0.15)', color: '#ef4444', fontSize: 11, fontWeight: 700, border: '1px solid rgba(239,68,68,0.3)' }}>
+                🚫 DEACTIVATED
+              </span>
+            )}
+            <button
+              className="crm-danger-btn"
+              onClick={() => setConfirm({ type: 'deactivate' })}
+              style={{
+                background: isDeactivated ? 'rgba(16,185,129,0.12)' : 'rgba(245,158,11,0.12)',
+                color: isDeactivated ? '#10b981' : '#f59e0b',
+                borderColor: isDeactivated ? 'rgba(16,185,129,0.3)' : 'rgba(245,158,11,0.3)',
+              }}
+              title={isDeactivated ? 'Reactivate this customer account' : 'Deactivate this customer account'}
+            >
+              {isDeactivated ? <ShieldCheck size={14} /> : <ShieldOff size={14} />}
+              {isDeactivated ? 'Reactivate' : 'Deactivate'}
+            </button>
+            <button
+              className="crm-danger-btn"
+              onClick={() => setConfirm({ type: 'delete' })}
+              style={{ background: 'rgba(239,68,68,0.12)', color: '#ef4444', borderColor: 'rgba(239,68,68,0.3)' }}
+              title="Permanently delete this customer"
+            >
+              <Trash2 size={14} /> Delete
+            </button>
+            <button
+              onClick={onClose}
+              style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--bg-elevated)', border: '1px solid var(--border)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)' }}
+            >
+              <X size={18} />
+            </button>
+          </div>
         </div>
 
         {/* Metrics Bar */}
@@ -748,9 +835,44 @@ const CustomerCRMModal = ({ customer, onClose }) => {
         </div>
 
         {/* Footer */}
-        <div style={{ padding: '12px 24px', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'flex-end', flexShrink: 0 }}>
+        <div style={{ padding: '12px 24px', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button
+              className="btn btn-sm"
+              onClick={() => setConfirm({ type: 'deactivate' })}
+              style={{ background: isDeactivated ? 'rgba(16,185,129,0.12)' : 'rgba(245,158,11,0.12)', color: isDeactivated ? '#10b981' : '#f59e0b', border: `1px solid ${isDeactivated ? 'rgba(16,185,129,0.3)' : 'rgba(245,158,11,0.3)'}`, display: 'flex', alignItems: 'center', gap: 6 }}
+            >
+              {isDeactivated ? <ShieldCheck size={13} /> : <ShieldOff size={13} />}
+              {isDeactivated ? 'Reactivate Account' : 'Deactivate Account'}
+            </button>
+            <button
+              className="btn btn-sm"
+              onClick={() => setConfirm({ type: 'delete' })}
+              style={{ background: 'rgba(239,68,68,0.1)', color: '#ef4444', border: '1px solid rgba(239,68,68,0.3)', display: 'flex', alignItems: 'center', gap: 6 }}
+            >
+              <Trash2 size={13} /> Delete Customer
+            </button>
+          </div>
           <button className="btn btn-secondary" onClick={onClose}>Close</button>
         </div>
+
+        {/* Confirm Dialog */}
+        <ConfirmDialog
+          open={!!confirm}
+          title={confirm?.type === 'delete' ? '⚠️ Delete Customer?' : isDeactivated ? '✅ Reactivate Customer?' : '⚠️ Deactivate Customer?'}
+          message={
+            confirm?.type === 'delete'
+              ? `This will permanently remove ${customer?.full_name || 'this customer'} from the system. Their orders and prescriptions will be anonymised. This cannot be undone.`
+              : isDeactivated
+              ? `${customer?.full_name || 'This customer'}'s account will be restored. They will be able to log in again.`
+              : `${customer?.full_name || 'This customer'}'s account will be suspended. They will not be able to log in. Their data and order history are preserved.`
+          }
+          confirmLabel={confirm?.type === 'delete' ? 'Delete Permanently' : isDeactivated ? 'Reactivate' : 'Deactivate'}
+          confirmColor={confirm?.type === 'delete' ? '#ef4444' : isDeactivated ? '#10b981' : '#f59e0b'}
+          onConfirm={handleConfirmAction}
+          onCancel={() => setConfirm(null)}
+          loading={actionLoading}
+        />
       </div>
     </div>
   );
@@ -763,23 +885,55 @@ const Customers = () => {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [selected, setSelected] = useState(null);
+  const [showDeactivated, setShowDeactivated] = useState(false);
 
-  useEffect(() => {
-    const fetchCustomers = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('role', 'customer')
-          .order('created_at', { ascending: false });
-        if (!error) setCustomers(data || []);
-      } catch (err) {
-        console.error('Error fetching customers:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchCustomers();
+  const fetchCustomers = useCallback(async () => {
+    try {
+      // Fetch both active customers AND deactivated ones
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .in('role', ['customer', 'deactivated'])
+        .order('created_at', { ascending: false });
+      if (!error) setCustomers(data || []);
+    } catch (err) {
+      console.error('Error fetching customers:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => { fetchCustomers(); }, [fetchCustomers]);
+
+  /* Deactivate / Reactivate */
+  const handleDeactivate = useCallback(async (customer, isCurrentlyDeactivated) => {
+    const newRole = isCurrentlyDeactivated ? 'customer' : 'deactivated';
+    const { error } = await supabase
+      .from('profiles')
+      .update({ role: newRole })
+      .eq('id', customer.id);
+    if (error) {
+      alert(`Failed to ${isCurrentlyDeactivated ? 'reactivate' : 'deactivate'} customer: ${error.message}`);
+      return;
+    }
+    // Update local state immediately
+    setCustomers(prev => prev.map(c => c.id === customer.id ? { ...c, role: newRole } : c));
+    // Also update selected so the CRM header reflects the change
+    if (selected?.id === customer.id) setSelected(prev => ({ ...prev, role: newRole }));
+  }, [selected]);
+
+  /* Soft delete — set role to 'deleted', hide from list */
+  const handleDelete = useCallback(async (customer) => {
+    const { error } = await supabase
+      .from('profiles')
+      .update({ role: 'deleted' })
+      .eq('id', customer.id);
+    if (error) {
+      alert(`Failed to delete customer: ${error.message}`);
+      return;
+    }
+    setCustomers(prev => prev.filter(c => c.id !== customer.id));
+    setSelected(null);
   }, []);
 
   const getEmail = (c) => c?.email || (c?.full_name ? `${c.full_name.toLowerCase().replace(/[^a-z0-9]/g, '')}@example.com` : '—');
@@ -795,14 +949,18 @@ const Customers = () => {
     };
   };
 
-  const filtered = customers.filter(c => {
-    const q = search.toLowerCase();
-    return (
-      (c.full_name || '').toLowerCase().includes(q) ||
-      (c.phone || '').includes(q) ||
-      getEmail(c).toLowerCase().includes(q)
-    );
-  });
+  const filtered = customers
+    .filter(c => showDeactivated ? true : c.role !== 'deactivated')
+    .filter(c => {
+      const q = search.toLowerCase();
+      return (
+        (c.full_name || '').toLowerCase().includes(q) ||
+        (c.phone || '').includes(q) ||
+        getEmail(c).toLowerCase().includes(q)
+      );
+    });
+
+  const deactivatedCount = customers.filter(c => c.role === 'deactivated').length;
 
   return (
     <AdminLayout>
@@ -810,12 +968,24 @@ const Customers = () => {
         <div className="page-header-left">
           <h1>Customer Management</h1>
           <p>
-            {customers.length} registered customers ·{' '}
+            {customers.filter(c => c.role === 'customer').length} active customers ·{' '}
             {customers.filter(c => {
               const d = new Date(); d.setMonth(d.getMonth() - 1);
-              return c.created_at ? new Date(c.created_at) > d : false;
+              return c.created_at && c.role === 'customer' ? new Date(c.created_at) > d : false;
             }).length} joined this month
+            {deactivatedCount > 0 && ` · ${deactivatedCount} deactivated`}
           </p>
+        </div>
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          {deactivatedCount > 0 && (
+            <button
+              className="btn btn-secondary btn-sm"
+              onClick={() => setShowDeactivated(v => !v)}
+              style={{ fontSize: 12 }}
+            >
+              {showDeactivated ? '👁 Hide Deactivated' : `👁 Show Deactivated (${deactivatedCount})`}
+            </button>
+          )}
         </div>
       </div>
 
@@ -858,14 +1028,20 @@ const Customers = () => {
                 <tr><td colSpan={9} style={{ textAlign: 'center', padding: 32, color: 'var(--text-muted)' }}>No customers found</td></tr>
               ) : filtered.map(c => {
                 const s = getStats(c);
+                const isDeactivated = c.role === 'deactivated';
                 return (
-                  <tr key={c.id}>
+                  <tr key={c.id} style={{ opacity: isDeactivated ? 0.6 : 1 }}>
                     <td>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                        <div style={{ width: 34, height: 34, borderRadius: '50%', background: 'linear-gradient(135deg, var(--cyan), var(--indigo))', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, color: 'white', fontSize: 13, flexShrink: 0 }}>
+                        <div style={{ width: 34, height: 34, borderRadius: '50%', background: isDeactivated ? 'linear-gradient(135deg, #64748b, #475569)' : 'linear-gradient(135deg, var(--cyan), var(--indigo))', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 700, color: 'white', fontSize: 13, flexShrink: 0 }}>
                           {(c.full_name || 'C')[0].toUpperCase()}
                         </div>
-                        <div style={{ fontWeight: 600, fontSize: 13 }}>{c.full_name || 'Customer'}</div>
+                        <div>
+                          <div style={{ fontWeight: 600, fontSize: 13 }}>{c.full_name || 'Customer'}</div>
+                          {isDeactivated && (
+                            <span style={{ fontSize: 10, fontWeight: 700, color: '#ef4444', background: 'rgba(239,68,68,0.1)', padding: '1px 6px', borderRadius: 4 }}>DEACTIVATED</span>
+                          )}
+                        </div>
                       </div>
                     </td>
                     <td className="muted">{c.phone || '—'}</td>
@@ -876,13 +1052,31 @@ const Customers = () => {
                     <td><span style={{ fontWeight: 700, color: 'var(--purple)' }}>{s.prescriptionsCount}</span></td>
                     <td className="muted">{c.created_at ? c.created_at.split('T')[0] : '—'}</td>
                     <td>
-                      <button
-                        className="btn btn-ghost btn-sm btn-icon"
-                        onClick={(e) => { e.stopPropagation(); setSelected(c); }}
-                        title="Open Customer CRM"
-                      >
-                        <Eye size={14} />
-                      </button>
+                      <div style={{ display: 'flex', gap: 4 }}>
+                        <button
+                          className="btn btn-ghost btn-sm btn-icon"
+                          onClick={(e) => { e.stopPropagation(); setSelected(c); }}
+                          title="Open Customer CRM"
+                        >
+                          <Eye size={14} />
+                        </button>
+                        <button
+                          className="btn btn-ghost btn-sm btn-icon"
+                          onClick={(e) => { e.stopPropagation(); handleDeactivate(c, isDeactivated); }}
+                          title={isDeactivated ? 'Reactivate account' : 'Deactivate account'}
+                          style={{ color: isDeactivated ? '#10b981' : '#f59e0b' }}
+                        >
+                          {isDeactivated ? <ShieldCheck size={14} /> : <ShieldOff size={14} />}
+                        </button>
+                        <button
+                          className="btn btn-ghost btn-sm btn-icon"
+                          onClick={(e) => { e.stopPropagation(); if (window.confirm(`Delete ${c.full_name || 'this customer'}? This cannot be undone.`)) handleDelete(c); }}
+                          title="Delete customer"
+                          style={{ color: '#ef4444' }}
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 );
@@ -897,6 +1091,8 @@ const Customers = () => {
         <CustomerCRMModal
           customer={selected}
           onClose={() => setSelected(null)}
+          onDeactivate={handleDeactivate}
+          onDelete={handleDelete}
         />
       )}
     </AdminLayout>
