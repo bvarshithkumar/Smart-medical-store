@@ -654,7 +654,8 @@ const MyPrescriptions = () => {
             name: m.name,
             quantity: m.qty,
             unit_price: m.price,
-            total_price: m.total
+            total_price: m.total,
+            image: m.image || null
           })),
           grandTotal: newTotal
         });
