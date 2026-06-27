@@ -10,28 +10,44 @@ import { cmsService } from '../../services/cmsService';
 
 const CMS_TABS = [
   { name: 'Hero Slides', table: 'cms_hero', folder: 'hero' },
-  { name: 'Categories', table: 'cms_categories', folder: 'categories' },
+  { name: 'Statistics Bar', table: null, folder: null },
   { name: 'Quick Actions', table: 'cms_quick_actions', folder: 'quick-actions' },
+  { name: 'Categories', table: 'cms_categories', folder: 'categories' },
+  { name: 'Popular Medicines', table: null, folder: null },
   { name: 'Offers', table: 'cms_offers', folder: 'offers' },
-  { name: 'Health Tips', table: 'cms_tips', folder: 'tips' },
-  { name: 'Testimonials', table: 'cms_testimonials', folder: 'testimonials' },
-  { name: 'Pharmacist Info', table: 'cms_pharmacist', folder: 'pharmacist' },
+  { name: 'Wellness Essentials', table: 'homepage_featured_products_items', folder: 'wellness' },
+  { name: 'Shop by Health Concern', table: null, folder: null },
   { name: 'Banners', table: 'cms_banners', folder: 'banners' },
+  { name: 'Prescription Tracker', table: null, folder: null },
+  { name: 'Core Trust Pillars', table: null, folder: null },
   { name: 'Brands', table: 'cms_brands', folder: 'brands' },
-  { name: 'Wellness Essentials', table: 'homepage_featured_products_items', folder: 'wellness' }
+  { name: 'Pickup Workflow', table: null, folder: null },
+  { name: 'Testimonials', table: 'cms_testimonials', folder: 'testimonials' },
+  { name: 'Health Tips', table: 'cms_tips', folder: 'tips' },
+  { name: 'About Us Story', table: null, folder: null },
+  { name: 'Pharmacist Info', table: 'cms_pharmacist', folder: 'pharmacist' },
+  { name: 'Frequently Asked Questions', table: null, folder: null }
 ];
 
 const SECTION_KEY_MAP = {
   'Hero Slides': 'hero_slides',
-  'Categories': 'categories',
+  'Statistics Bar': 'statistics',
   'Quick Actions': 'quick_actions',
+  'Categories': 'categories',
+  'Popular Medicines': 'popular_medicines',
   'Offers': 'offers',
-  'Health Tips': 'health_tips',
-  'Testimonials': 'testimonials',
-  'Pharmacist Info': 'pharmacist_info',
+  'Wellness Essentials': 'wellness_essentials',
+  'Shop by Health Concern': 'health_concerns',
   'Banners': 'banners',
+  'Prescription Tracker': 'prescription_tracker',
+  'Core Trust Pillars': 'why_choose_us',
   'Brands': 'brands',
-  'Wellness Essentials': 'wellness_essentials'
+  'Pickup Workflow': 'how_it_works',
+  'Testimonials': 'testimonials',
+  'Health Tips': 'health_tips',
+  'About Us Story': 'about_us',
+  'Pharmacist Info': 'pharmacist_info',
+  'Frequently Asked Questions': 'faqs'
 };
 
 const CMS = () => {
@@ -249,6 +265,8 @@ const CMS = () => {
       if (tab === 'Wellness Essentials') {
         const data = await cmsService.getFeaturedProductsItems();
         setItems(data);
+      } else if (!activeTabConfig.table) {
+        setItems([]);
       } else {
         const data = await fetchWithTimeout(async (signal) => {
           const { data, error } = await supabase
@@ -1382,7 +1400,9 @@ const CMS = () => {
           <button className={`btn btn-secondary`} onClick={() => setPreview(p => !p)}>
             {preview ? <EyeOff size={14} /> : <Eye size={14} />} {preview ? 'Hide Preview' : 'Live Preview'}
           </button>
-          <button className="btn btn-primary" onClick={(e) => { e.stopPropagation(); console.log("Adding CMS Item"); openAdd(); }}><Plus size={14} /> Add {tab.replace(/s$/, '')}</button>
+          {activeTabConfig?.table && (
+            <button className="btn btn-primary" onClick={(e) => { e.stopPropagation(); console.log("Adding CMS Item"); openAdd(); }}><Plus size={14} /> Add {tab.replace(/s$/, '')}</button>
+          )}
         </div>
       </div>
 
@@ -1409,6 +1429,44 @@ const CMS = () => {
         <SkeletonGrid cards={6} minWidth={260} />
       ) : fetchError ? (
         <ErrorState message={fetchError} onRetry={loadItems} />
+      ) : !activeTabConfig?.table ? (
+        <div style={{
+          padding: '40px 24px',
+          background: 'var(--bg-card)',
+          border: '1px solid var(--border)',
+          borderRadius: 16,
+          textAlign: 'center',
+          color: 'var(--text-secondary)',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: 16,
+          boxShadow: '0 4px 20px rgba(0,0,0,0.02)',
+          boxSizing: 'border-box'
+        }}>
+          <div style={{
+            width: 56,
+            height: 56,
+            borderRadius: '50%',
+            background: 'rgba(20, 184, 166, 0.1)',
+            color: 'var(--teal-accent, #00A884)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: 24
+          }}>
+            ⚙️
+          </div>
+          <div>
+            <h3 style={{ margin: '0 0 8px 0', fontSize: 16, fontWeight: 700, color: 'var(--text-primary)' }}>
+              Dynamically Managed Layout Section
+            </h3>
+            <p style={{ margin: 0, fontSize: 13, maxWidth: 520, lineHeight: 1.6, color: 'var(--text-muted)' }}>
+              This section is rendered dynamically or loads directly from your active inventory database. 
+              Use the settings dashboard above to toggle its visibility, override its header titles, reorder its display position, schedule availability, adjust vertical spacing, and fine-tune responsive presentation layouts.
+            </p>
+          </div>
+        </div>
       ) : items.length === 0 ? (
         <EmptyState
           title={`No ${tab} Found`}
