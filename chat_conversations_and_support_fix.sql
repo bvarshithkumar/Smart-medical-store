@@ -93,11 +93,11 @@ CREATE POLICY "customer_chats" ON public.chat_messages
 
 CREATE POLICY "chat_select_anon" ON public.chat_messages
     FOR SELECT TO anon
-    USING (prescription_id IS NOT NULL);
+    USING (prescription_id IS NOT NULL OR customer_name LIKE 'Guest:%');
 
 CREATE POLICY "chat_insert_anon" ON public.chat_messages
     FOR INSERT TO anon
-    WITH CHECK (prescription_id IS NOT NULL);
+    WITH CHECK (prescription_id IS NOT NULL OR customer_name LIKE 'Guest:%');
 
 -- Add support chat columns to public.chat_messages
 ALTER TABLE public.chat_messages ADD COLUMN IF NOT EXISTS conversation_id UUID REFERENCES public.chat_conversations(id) ON DELETE CASCADE;
