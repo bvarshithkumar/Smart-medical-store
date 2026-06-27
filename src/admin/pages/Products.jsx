@@ -120,7 +120,7 @@ const Products = () => {
 
   const PER_PAGE = 12;
 
-  if (dataLoading) {
+  if (dataLoading && products.length === 0) {
     return (
       <AdminLayout>
         <div className="page-header">
@@ -728,9 +728,9 @@ const Products = () => {
               </div>
               <div className="product-stock" style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Stock: <strong>{p.stock}</strong> units · SKU: {p.sku || 'N/A'}</div>
               <div className="product-card-actions">
-                <button className="btn btn-ghost btn-sm btn-icon" onClick={() => openEdit(p)} title="Edit"><Edit2 size={14} /></button>
-                <button className="btn btn-ghost btn-sm btn-icon" onClick={() => duplicate(p)} title="Duplicate"><Copy size={14} /></button>
-                <button className="btn btn-ghost btn-sm btn-icon" onClick={() => openDelete(p)} title="Delete" style={{ color: 'var(--red)' }}><Trash2 size={14} /></button>
+                <button className="btn btn-ghost btn-sm btn-icon" onClick={(e) => { e.stopPropagation(); openEdit(p); }} title="Edit"><Edit2 size={14} /></button>
+                <button className="btn btn-ghost btn-sm btn-icon" onClick={(e) => { e.stopPropagation(); duplicate(p); }} title="Duplicate"><Copy size={14} /></button>
+                <button className="btn btn-ghost btn-sm btn-icon" onClick={(e) => { e.stopPropagation(); openDelete(p); }} title="Delete" style={{ color: 'var(--red)' }}><Trash2 size={14} /></button>
               </div>
             </div>
           </div>
