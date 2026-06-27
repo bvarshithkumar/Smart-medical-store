@@ -49,6 +49,25 @@ const FloatingPharmacist = () => {
   const [typingText, setTypingText] = useState('');
   const [isCurrentlyTyping, setIsCurrentlyTyping] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [isPharmacistOnline, setIsPharmacistOnline] = useState(false);
+
+  /* Track online presence of pharmacist */
+  useEffect(() => {
+    const presenceChannel = supabase.channel('online-presence');
+    presenceChannel
+      .on('presence', { event: 'sync' }, () => {
+        const state = presenceChannel.presenceState();
+        const hasPharmacist = Object.values(state).some(presences => 
+          presences.some(p => p.role === 'pharmacist')
+        );
+        setIsPharmacistOnline(hasPharmacist);
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(presenceChannel);
+    };
+  }, []);
 
   // Guest details states
   const [guestId, setGuestId] = useState(() => {
@@ -263,20 +282,21 @@ const FloatingPharmacist = () => {
     fetchMessages();
 
     // 2. Realtime listener for new messages
-    const roomFilter = activeRx
-      ? `prescription_id=eq.${activeRx.id}`
-      : `prescription_id=is.null`;
+    const channelConfig = activeRx
+      ? { event: '*', schema: 'public', table: 'chat_messages', filter: `prescription_id=eq.${activeRx.id}` }
+      : { event: '*', schema: 'public', table: 'chat_messages' };
 
     const channelName = `chat-${activeRx ? activeRx.id : (user ? user.id : guestId)}`;
     const sub = supabase
       .channel(channelName)
       .on(
         'postgres_changes',
-        { event: '*', schema: 'public', table: 'chat_messages', filter: roomFilter },
+        channelConfig,
         async (payload) => {
           if (payload.eventType === 'INSERT') {
             // Check if message belongs to this user's general support chat
             if (!activeRx) {
+              if (payload.new.prescription_id) return;
               if (user && payload.new.user_id !== user.id) return;
               if (!user && payload.new.customer_name !== `Guest: ${guestId} (${guestName})`) return;
             }
@@ -290,10 +310,18 @@ const FloatingPharmacist = () => {
             if (payload.new.sender_role === 'pharmacist' && !payload.new.is_read) {
               await supabase
                 .from('chat_messages')
-                .update({ is_read: true })
+                .update({ is_read: true, delivery_status: 'read' })
                 .eq('id', payload.new.id);
             }
           } else if (payload.eventType === 'UPDATE') {
+            // Check if message belongs to this chat
+            if (activeRx) {
+              if (payload.new.prescription_id !== activeRx.id) return;
+            } else {
+              if (payload.new.prescription_id) return;
+              if (user && payload.new.user_id !== user.id) return;
+              if (!user && payload.new.customer_name !== `Guest: ${guestId} (${guestName})`) return;
+            }
             setMessages(prev => prev.map(m => m.id === payload.new.id ? payload.new : m));
           }
         }
@@ -510,6 +538,14 @@ const FloatingPharmacist = () => {
     }
   };
 
+  const handleRetrySend = async (msgToRetry) => {
+    if (!msgToRetry) return;
+    // Remove the failed message from local messages state
+    setMessages(prev => prev.filter(m => m.id !== msgToRetry.id));
+    // Resend using the message text
+    await handleSendMessage(msgToRetry.message);
+  };
+
   const handleFileUpload = async (file) => {
     if (!file) return null;
     setIsUploading(true);
@@ -605,6 +641,17 @@ const FloatingPharmacist = () => {
           flex-direction: column;
           gap: 4px;
           word-break: break-word;
+          animation: slideIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        @keyframes slideIn {
+          from {
+            opacity: 0;
+            transform: translateY(8px) scale(0.98);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+          }
         }
         .chat-bubble--customer {
           align-self: flex-end;
@@ -773,7 +820,14 @@ const FloatingPharmacist = () => {
         </button>
 
         {/* Online indicator dot */}
-        <span className="pharm-online-dot" aria-label="Pharmacist online" />
+        <span 
+          className="pharm-online-dot" 
+          aria-label={isPharmacistOnline ? "Pharmacist online" : "Pharmacist offline"} 
+          style={{ 
+            background: isPharmacistOnline ? '#22c55e' : '#94a3b8', 
+            boxShadow: isPharmacistOnline ? '0 0 6px rgba(34, 197, 94, 0.60)' : 'none' 
+          }} 
+        />
       </div>
 
       {/* ── Consultation Panel (popup) ──────────────────────── */}
@@ -807,8 +861,8 @@ const FloatingPharmacist = () => {
                   <span style={{ color: 'var(--cyan, #06b6d4)', fontWeight: 600 }}>{typingText}</span>
                 ) : (
                   <>
-                    <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#10b981', display: 'inline-block' }} />
-                    <span>Pharmacist Online · 8 AM – 10:30 PM</span>
+                    <span style={{ width: 6, height: 6, borderRadius: '50%', background: isPharmacistOnline ? '#10b981' : '#94a3b8', display: 'inline-block' }} />
+                    <span>{isPharmacistOnline ? 'Pharmacist Online' : 'Pharmacist Offline'} · 8 AM – 10:30 PM</span>
                   </>
                 )}
               </p>
@@ -1031,21 +1085,42 @@ const FloatingPharmacist = () => {
                           {new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </span>
                         {m.sender_role === 'customer' && (
-                          <span style={{ fontSize: 10, marginLeft: 4, display: 'inline-block', color: m.delivery_status === 'failed' ? '#ef4444' : '#67e8f9' }}>
+                          <span style={{ fontSize: 10, marginLeft: 4, display: 'inline-flex', alignItems: 'center', gap: 4, color: m.delivery_status === 'failed' ? '#ef4444' : '#67e8f9' }}>
                             {m.delivery_status === 'sending' ? 'Sending...' : m.delivery_status === 'failed' ? 'Failed' : (m.is_read || m.delivery_status === 'read' ? 'Read' : 'Delivered')}
+                            {m.delivery_status === 'failed' && (
+                              <button 
+                                onClick={(e) => { e.stopPropagation(); handleRetrySend(m); }}
+                                style={{ background: 'none', border: 'none', color: '#f87171', cursor: 'pointer', padding: 0, textDecoration: 'underline', fontWeight: 700, fontSize: 10 }}
+                              >
+                                Retry
+                              </button>
+                            )}
                           </span>
                         )}
                       </div>
                     </div>
                   ))
                 )}
+                
+                {messages.length > 0 && messages[messages.length - 1].sender_role === 'customer' && !typingText && (
+                  <div className="chat-bubble chat-bubble--pharmacist" style={{ display: 'flex', flexDirection: 'row', gap: 6, alignItems: 'center', padding: '8px 12px', width: 'fit-content', opacity: 0.75 }}>
+                    <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--cyan, #06b6d4)', animation: 'pulse 1.2s infinite alternate' }} />
+                    <span style={{ fontSize: 11, color: 'var(--text-muted, #94a3b8)' }}>Waiting for pharmacist response...</span>
+                    <style>{`
+                      @keyframes pulse {
+                        to { opacity: 0.2; transform: scale(0.8); }
+                      }
+                    `}</style>
+                  </div>
+                )}
+
                 {typingText && (
                   <div className="chat-bubble chat-bubble--pharmacist" style={{ display: 'flex', flexDirection: 'row', gap: 4, alignItems: 'center', padding: '8px 12px', width: 'fit-content' }}>
                     <span>{typingText}</span>
                     <span style={{ display: 'inline-flex', gap: 2 }}>
-                      <span style={{ width: 4, height: 4, background: 'var(--text-muted)', borderRadius: '50%', animation: 'bounce 1s infinite alternate' }} />
-                      <span style={{ width: 4, height: 4, background: 'var(--text-muted)', borderRadius: '50%', animation: 'bounce 1s infinite alternate 0.2s' }} />
-                      <span style={{ width: 4, height: 4, background: 'var(--text-muted)', borderRadius: '50%', animation: 'bounce 1s infinite alternate 0.4s' }} />
+                      <span style={{ width: 4, height: 4, background: 'var(--cyan, #06b6d4)', borderRadius: '50%', animation: 'bounce 0.6s infinite alternate' }} />
+                      <span style={{ width: 4, height: 4, background: 'var(--cyan, #06b6d4)', borderRadius: '50%', animation: 'bounce 0.6s infinite alternate 0.2s' }} />
+                      <span style={{ width: 4, height: 4, background: 'var(--cyan, #06b6d4)', borderRadius: '50%', animation: 'bounce 0.6s infinite alternate 0.4s' }} />
                     </span>
                     <style>{`
                       @keyframes bounce {

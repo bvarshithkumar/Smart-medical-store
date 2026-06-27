@@ -41,6 +41,21 @@ const Support = () => {
   const fileInputRef = useRef(null);
   const typingTimeoutRef = useRef(null);
 
+  // Setup presence channel to announce pharmacist availability
+  useEffect(() => {
+    const presenceChannel = supabase.channel('online-presence');
+    presenceChannel
+      .subscribe(async (status) => {
+        if (status === 'SUBSCRIBED') {
+          await presenceChannel.track({ role: 'pharmacist', onlineAt: new Date().toISOString() });
+        }
+      });
+
+    return () => {
+      supabase.removeChannel(presenceChannel);
+    };
+  }, []);
+
   // Scroll to bottom
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -136,7 +151,11 @@ const Support = () => {
     // 4. Setup typing broadcast receiver
     if (typingChanRef.current) supabase.removeChannel(typingChanRef.current);
     
-    const typingRoomKey = activeConv.user_id || activeConv.customer_name;
+    let typingRoomKey = activeConv.user_id || activeConv.customer_name;
+    if (!activeConv.user_id && activeConv.customer_name?.startsWith('Guest:')) {
+      const parts = activeConv.customer_name.split(' ');
+      if (parts[1]) typingRoomKey = parts[1];
+    }
     const typingChan = supabase.channel(`typing-${typingRoomKey}`);
     typingChan
       .on('broadcast', { event: 'typing' }, ({ payload }) => {
