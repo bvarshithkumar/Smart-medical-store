@@ -91,10 +91,12 @@ CREATE POLICY "customer_chats" ON public.chat_messages
       ))
     );
 
+DROP POLICY IF EXISTS "chat_select_anon" ON public.chat_messages;
 CREATE POLICY "chat_select_anon" ON public.chat_messages
     FOR SELECT TO anon
     USING (prescription_id IS NOT NULL OR customer_name LIKE 'Guest:%');
 
+DROP POLICY IF EXISTS "chat_insert_anon" ON public.chat_messages;
 CREATE POLICY "chat_insert_anon" ON public.chat_messages
     FOR INSERT TO anon
     WITH CHECK (prescription_id IS NOT NULL OR customer_name LIKE 'Guest:%');
