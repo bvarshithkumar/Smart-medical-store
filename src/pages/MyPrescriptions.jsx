@@ -1727,7 +1727,13 @@ const MyPrescriptions = () => {
                     alignItems: 'center',
                     gap: '6px'
                   }}>
-                    <span>{isAuto ? '⚡ Confidence: 98% (AUTO_PROCESS) — processed instantly without pharmacist approval.' : '👤 Confidence: 90% (MANUAL_REVIEW) — requires professional review by a pharmacist.'}</span>
+                    <span>
+                      {isAuto ? (
+                        <>✅ <strong>Your updated quote will be available immediately.</strong></>
+                      ) : (
+                        <>🩺 <strong>Your request has been sent to our pharmacist for review.</strong></>
+                      )}
+                    </span>
                   </div>
                 </div>
               );

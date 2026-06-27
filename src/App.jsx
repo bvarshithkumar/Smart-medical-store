@@ -41,7 +41,7 @@ export const getPWATrigger = () => _pwaInstallTrigger;
 const AppContent = () => {
   const { toast, hideToast } = useCart();
   const [isLoading, setIsLoading] = useState(true);
-  const { openLogin, openRegister, openForgotPassword, openResetPassword, openCompleteProfile } = useAuth();
+  const { openLogin, openRegister, openForgotPassword, openResetPassword, openCompleteProfile, isAuthenticated } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -60,30 +60,33 @@ const AppContent = () => {
       return;
     }
 
+    // Use navigate to clear URL params so React Router location updates properly
+    // and this effect does not re-fire with stale params after login.
+    // Guard with !isAuthenticated so a successful login never re-opens the modal.
     if (verified === 'true') {
-      openLogin();
-      window.history.replaceState({}, '', window.location.pathname);
+      if (!isAuthenticated) openLogin();
+      navigate(location.pathname, { replace: true });
     } else if (reset === 'true') {
       openResetPassword();
-      window.history.replaceState({}, '', window.location.pathname);
+      navigate(location.pathname, { replace: true });
     } else if (authType === 'login') {
       const from = params.get('from');
-      openLogin(from);
-      window.history.replaceState({}, '', window.location.pathname);
+      if (!isAuthenticated) openLogin(from);
+      navigate(location.pathname, { replace: true });
     } else if (authType === 'register') {
       const from = params.get('from');
-      openRegister(from);
-      window.history.replaceState({}, '', window.location.pathname);
+      if (!isAuthenticated) openRegister(from);
+      navigate(location.pathname, { replace: true });
     } else if (authType === 'forgot-password') {
       const from = params.get('from');
-      openForgotPassword(from);
-      window.history.replaceState({}, '', window.location.pathname);
+      if (!isAuthenticated) openForgotPassword(from);
+      navigate(location.pathname, { replace: true });
     } else if (authType === 'complete-profile') {
       const from = params.get('from');
       openCompleteProfile(from);
-      window.history.replaceState({}, '', window.location.pathname);
+      navigate(location.pathname, { replace: true });
     }
-  }, [location.search, navigate, openLogin, openRegister, openForgotPassword, openResetPassword, openCompleteProfile]);
+  }, [location.search, location.pathname, navigate, isAuthenticated, openLogin, openRegister, openForgotPassword, openResetPassword, openCompleteProfile]);
 
   /* ── PWA State ──────────────────────────────────────────── */
   const [pwaPrompt,    setPwaPrompt]  = useState(null);

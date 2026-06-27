@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect, useContext } from 'react';
+import React, { createContext, useState, useEffect, useContext, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 
 const AuthContext = createContext();
@@ -17,34 +17,34 @@ export const AuthProvider = ({ children }) => {
   const [authModal, setAuthModal] = useState(null);
   const [authModalData, setAuthModalData] = useState(null);
 
-  const openLogin = (fromPath = null) => {
+  const openLogin = useCallback((fromPath = null) => {
     setAuthModal('login');
     setAuthModalData({ from: fromPath });
-  };
-  const openRegister = (fromPath = null) => {
+  }, []);
+  const openRegister = useCallback((fromPath = null) => {
     setAuthModal('register');
     setAuthModalData({ from: fromPath });
-  };
-  const openForgotPassword = (fromPath = null) => {
+  }, []);
+  const openForgotPassword = useCallback((fromPath = null) => {
     setAuthModal('forgot-password');
     setAuthModalData({ from: fromPath });
-  };
-  const openVerifyEmail = (email, fromPath = null) => {
+  }, []);
+  const openVerifyEmail = useCallback((email, fromPath = null) => {
     setAuthModal('verify-email');
     setAuthModalData({ email, from: fromPath });
-  };
-  const openResetPassword = () => {
+  }, []);
+  const openResetPassword = useCallback(() => {
     setAuthModal('reset-password');
     setAuthModalData(null);
-  };
-  const openCompleteProfile = (fromPath = null) => {
+  }, []);
+  const openCompleteProfile = useCallback((fromPath = null) => {
     setAuthModal('complete-profile');
     setAuthModalData({ from: fromPath });
-  };
-  const closeAuthModal = () => {
+  }, []);
+  const closeAuthModal = useCallback(() => {
     setAuthModal(null);
     setAuthModalData(null);
-  };
+  }, []);
 
   /* ── Helper: fetch profile row from public.profiles ─── */
   const fetchProfile = async (userId) => {
