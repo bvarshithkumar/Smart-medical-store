@@ -14,6 +14,7 @@ export const AdminProvider = ({ children }) => {
   const [products, setProducts] = useState([]);
   const [orders, setOrders] = useState([]);
   const [reservations, setReservations] = useState([]);
+  const [allReservations, setAllReservations] = useState([]);
   const [customers, setCustomers] = useState(mockCustomers);
   const [prescriptions, setPrescriptions] = useState([]);
   const [inventory, setInventory] = useState(mockInventory);
@@ -202,13 +203,28 @@ export const AdminProvider = ({ children }) => {
         setInventory(mappedInventoryList);
       }
 
-      // 2. Fetch pickup reservations (active ones)
+      // 2. Fetch pickup reservations
       const { data: resData } = await supabase
         .from('pickup_reservations')
         .select('*')
         .order('created_at', { ascending: false })
         .abortSignal(controller.signal);
       if (resData) {
+        setAllReservations(resData.map(r => ({
+          id: r.id,
+          reservation_id: r.reservation_id,
+          user_id: r.user_id,
+          customerName: r.customer_name || 'Walk-in Customer',
+          customerPhone: r.phone_number || '',
+          status: r.status,
+          date: r.pickup_date,
+          time: r.pickup_time,
+          total: r.total_amount || 0,
+          paymentStatus: 'Pending',
+          items: Array.isArray(r.medicines) ? r.medicines : [],
+          created_at: r.created_at
+        })));
+
         const activeRes = resData.filter(r =>
           !['collected', 'completed', 'cancelled'].includes((r.status || '').toLowerCase())
         );
@@ -503,12 +519,26 @@ export const AdminProvider = ({ children }) => {
       )
       .subscribe();
 
+    // Realtime subscription — refetch when orders change
+    const ordersChannel = supabase
+      .channel('orders-admin')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'orders' },
+        (payload) => {
+          console.log('[AdminContext] Realtime order change:', payload);
+          fetchAllData();
+        }
+      )
+      .subscribe();
+
     return () => {
       supabase.removeChannel(rxChannel);
       supabase.removeChannel(resChannel);
       supabase.removeChannel(prodChannel);
       supabase.removeChannel(invLogChannel);
       supabase.removeChannel(convChannel);
+      supabase.removeChannel(ordersChannel);
       supabase.removeChannel(notifChannel);
       supabase.removeChannel(chatChannel);
     };
@@ -807,11 +837,11 @@ export const AdminProvider = ({ children }) => {
     weeklySales: orders.reduce((s, o) => s + o.total, 0),
     monthlySales: orders.reduce((s, o) => s + o.total, 0),
     totalRevenue: orders.reduce((s, o) => s + o.total, 0),
-    totalOrders: orders.length,
-    pendingOrders: reservations.filter(r => r.status === 'Pending').length,
-    processingOrders: reservations.filter(r => ['Preparing', 'Preparing Medicines'].includes(r.status)).length,
-    completedOrders: orders.length,
-    cancelledOrders: 0, // Completed orders table only stores completed transactions
+    totalOrders: allReservations.length + orders.filter(o => !o.reservation_id).length,
+    pendingOrders: allReservations.filter(r => r.status === 'Pending').length,
+    processingOrders: allReservations.filter(r => ['Preparing', 'Preparing Medicines'].includes(r.status)).length,
+    completedOrders: orders.filter(o => o.status === 'Completed').length,
+    cancelledOrders: allReservations.filter(r => r.status === 'Cancelled').length,
     totalProducts: products.length,
     lowStock: products.filter(p => p.stock > 0 && p.stock <= 10).length,
     outOfStock: products.filter(p => p.stock === 0).length,
@@ -837,7 +867,7 @@ export const AdminProvider = ({ children }) => {
       theme, toggleTheme,
       products, addProduct, updateProduct, deleteProduct, CATEGORIES,
       orders, updateOrderStatus,
-      reservations, updateReservationStatus,
+      reservations, updateReservationStatus, allReservations,
       customers,
       prescriptions, updatePrescription, fetchPrescriptions,
       inventory, inventoryLogs, adjustStock,

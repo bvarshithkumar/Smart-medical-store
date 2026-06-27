@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useAdmin } from '../context/AdminContext';
 import AdminLayout from '../components/AdminLayout';
-import { revenueData } from '../data/mockData';
 import {
   LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid,
   Tooltip, ResponsiveContainer, Legend
@@ -29,10 +28,38 @@ const StatCard = ({ label, value, icon, color, trend, trendUp }) => (
   </div>
 );
 
+// Custom Chart Tooltip
+const CustomTooltip = ({ active, payload, label }) => {
+  if (active && payload && payload.length) {
+    return (
+      <div style={{
+        background: 'rgba(15, 23, 42, 0.95)',
+        backdropFilter: 'blur(8px)',
+        border: '1px solid rgba(255, 255, 255, 0.08)',
+        padding: '10px 14px',
+        borderRadius: '8px',
+        color: 'white',
+        fontSize: '12px',
+        boxShadow: '0 4px 20px rgba(0,0,0,0.4)',
+        fontFamily: 'Inter, sans-serif'
+      }}>
+        <p style={{ margin: '0 0 6px 0', fontWeight: 700, color: '#94a3b8' }}>{label}</p>
+        {payload.map((p, idx) => (
+          <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4 }}>
+            <span style={{ width: 8, height: 8, borderRadius: '50%', background: p.color || p.fill }} />
+            <span>{p.name}: <b>{p.name.includes('Revenue') ? fmt(p.value) : p.value}</b></span>
+          </div>
+        ))}
+      </div>
+    );
+  }
+  return null;
+};
+
 const Dashboard = () => {
-  const { metrics, orders, dataLoading, dataError, refetchAllData } = useAdmin();
+  const { metrics, orders, reservations, allReservations, products, dataLoading, dataError, refetchAllData } = useAdmin();
   const [range, setRange] = useState('7d');
-  const data = revenueData[range];
+  
   const recentOrders = orders.slice(0, 8);
 
   if (dataLoading) {
@@ -62,14 +89,95 @@ const Dashboard = () => {
     );
   }
 
+  // Helper to generate dynamic days range
+  const getRangeDays = (daysCount) => {
+    const list = [];
+    for (let i = daysCount - 1; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      list.push(d);
+    }
+    return list;
+  };
+
+  const rangeDaysMap = { '7d': 7, '30d': 30, '90d': 90 };
+  const daysCount = rangeDaysMap[range] || 7;
+  const dates = getRangeDays(daysCount);
+
+  // Compute daily sales and order volumes
+  const chartData = dates.map(dt => {
+    const yyyy = dt.getFullYear();
+    const mm = String(dt.getMonth() + 1).padStart(2, '0');
+    const dd = String(dt.getDate()).padStart(2, '0');
+    const dateStr = `${yyyy}-${mm}-${dd}`;
+
+    // Completed orders on this day
+    const dayOrders = orders.filter(o => o.date === dateStr && o.status === 'Completed');
+    const revenue = dayOrders.reduce((sum, o) => sum + (o.total || 0), 0);
+    const completedCount = dayOrders.length;
+
+    // Reservations on this day by status
+    const dayReservations = allReservations.filter(r => r.date === dateStr);
+    const pendingCount = dayReservations.filter(r => r.status === 'Pending').length;
+    const cancelledCount = dayReservations.filter(r => r.status === 'Cancelled').length;
+
+    // Total order count = completed pickup orders + pending reservations + cancelled reservations
+    const totalCount = completedCount + pendingCount + cancelledCount;
+
+    const label = dt.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+
+    return {
+      day: label,
+      rawDate: dateStr,
+      revenue: revenue,
+      orders: totalCount,
+      completed: completedCount,
+      pending: pendingCount,
+      cancelled: cancelledCount
+    };
+  });
+
+  const hasCompletedOrders = orders.some(o => o.status === 'Completed');
+  const hasAnyOrders = orders.length > 0 || allReservations.length > 0;
+
+  // Compute top selling products (Top 5)
+  const salesMap = {};
+  orders.forEach(o => {
+    if (o.status === 'Completed' && Array.isArray(o.items)) {
+      o.items.forEach(item => {
+        if (!item.id) return;
+        if (!salesMap[item.id]) {
+          salesMap[item.id] = {
+            id: item.id,
+            name: item.name || 'Unknown Medicine',
+            unitsSold: 0,
+            revenue: 0
+          };
+        }
+        salesMap[item.id].unitsSold += item.qty || 0;
+        salesMap[item.id].revenue += (item.qty || 0) * (item.price || 0);
+      });
+    }
+  });
+
+  const topSellingList = Object.values(salesMap)
+    .map(sale => {
+      const prod = products.find(p => p.id === sale.id);
+      return {
+        ...sale,
+        image: prod?.image || '/images/cat_medicines.png',
+        stock: prod?.stock ?? 0
+      };
+    })
+    .sort((a, b) => b.unitsSold - a.unitsSold)
+    .slice(0, 5);
+
+  const maxUnitsSold = topSellingList.length > 0 ? Math.max(...topSellingList.map(p => p.unitsSold)) : 1;
+
   const statusColor = (s) => ({
     Pending: 'badge-pending', Processing: 'badge-processing',
     'Ready for Pickup': 'badge-ready', Completed: 'badge-completed', Cancelled: 'badge-cancelled'
   }[s] || '');
-
-  const activityFeed = [];
-
-  const topProducts = [];
 
   return (
     <AdminLayout>
@@ -115,7 +223,7 @@ const Dashboard = () => {
       {/* Charts Row */}
       <div className="grid-2" style={{ marginBottom: 24 }}>
         {/* Revenue Chart */}
-        <div className="chart-card">
+        <div className="chart-card" style={{ position: 'relative' }}>
           <div className="chart-header">
             <div>
               <div className="chart-title">Revenue Analytics</div>
@@ -129,69 +237,152 @@ const Dashboard = () => {
               ))}
             </div>
           </div>
+
+          {!hasCompletedOrders && (
+            <div style={{
+              position: 'absolute',
+              top: 70, left: 0, right: 0, bottom: 0,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              background: 'rgba(15, 23, 42, 0.85)',
+              backdropFilter: 'blur(3px)',
+              borderRadius: '8px',
+              zIndex: 2,
+              textAlign: 'center',
+              padding: '0 24px'
+            }}>
+              <div style={{ fontSize: '32px', marginBottom: '8px' }}>💰</div>
+              <h4 style={{ margin: '0 0 4px 0', color: 'white', fontSize: '14px' }}>No Completed Orders Yet</h4>
+              <p style={{ margin: 0, fontSize: '11px', color: 'var(--text-muted)', maxWidth: '280px', lineHeight: 1.4 }}>
+                Revenue analytics will appear once store pickup sales are recorded.
+              </p>
+            </div>
+          )}
+
           <ResponsiveContainer width="100%" height={200}>
-            <LineChart data={data}>
-              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+            <LineChart data={chartData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" opacity={0.5} />
               <XAxis dataKey="day" tick={{ fill: 'var(--text-muted)', fontSize: 11 }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fill: 'var(--text-muted)', fontSize: 11 }} axisLine={false} tickLine={false} tickFormatter={v => `₹${v >= 1000 ? (v/1000).toFixed(0)+'K' : v}`} />
-              <Tooltip contentStyle={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', borderRadius: 8, color: 'var(--text-primary)', fontSize: 12 }} formatter={(v) => [`₹${v.toLocaleString()}`, 'Revenue']} />
-              <Line type="monotone" dataKey="revenue" stroke="var(--cyan)" strokeWidth={2.5} dot={false} activeDot={{ r: 5, fill: 'var(--cyan)' }} />
+              <Tooltip content={<CustomTooltip />} />
+              <Line type="monotone" name="Revenue" dataKey="revenue" stroke="var(--cyan)" strokeWidth={2.5} dot={false} activeDot={{ r: 5, fill: 'var(--cyan)' }} />
             </LineChart>
           </ResponsiveContainer>
         </div>
 
         {/* Orders Chart */}
-        <div className="chart-card">
+        <div className="chart-card" style={{ position: 'relative' }}>
           <div className="chart-header">
             <div>
               <div className="chart-title">Orders Analytics</div>
               <div className="chart-subtitle">Daily order volume</div>
             </div>
+            <div className="chart-controls">
+              {['7d', '30d', '90d'].map(r => (
+                <button key={r} className={`chart-control-btn${range === r ? ' active' : ''}`} onClick={() => setRange(r)}>
+                  {r === '7d' ? '7 Days' : r === '30d' ? '30 Days' : '90 Days'}
+                </button>
+              ))}
+            </div>
           </div>
+
+          {!hasAnyOrders && (
+            <div style={{
+              position: 'absolute',
+              top: 70, left: 0, right: 0, bottom: 0,
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              background: 'rgba(15, 23, 42, 0.85)',
+              backdropFilter: 'blur(3px)',
+              borderRadius: '8px',
+              zIndex: 2,
+              textAlign: 'center',
+              padding: '0 24px'
+            }}>
+              <div style={{ fontSize: '32px', marginBottom: '8px' }}>📦</div>
+              <h4 style={{ margin: '0 0 4px 0', color: 'white', fontSize: '14px' }}>No Orders Found</h4>
+              <p style={{ margin: 0, fontSize: '11px', color: 'var(--text-muted)', maxWidth: '280px', lineHeight: 1.4 }}>
+                Orders volume chart will update automatically as customers place reservations.
+              </p>
+            </div>
+          )}
+
           <ResponsiveContainer width="100%" height={200}>
-            <BarChart data={revenueData['7d']}>
-              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+            <BarChart data={chartData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" opacity={0.5} />
               <XAxis dataKey="day" tick={{ fill: 'var(--text-muted)', fontSize: 11 }} axisLine={false} tickLine={false} />
               <YAxis tick={{ fill: 'var(--text-muted)', fontSize: 11 }} axisLine={false} tickLine={false} />
-              <Tooltip contentStyle={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', borderRadius: 8, color: 'var(--text-primary)', fontSize: 12 }} />
-              <Bar dataKey="orders" fill="var(--indigo)" radius={[4, 4, 0, 0]} />
+              <Tooltip content={<CustomTooltip />} />
+              <Legend verticalAlign="top" height={32} iconType="circle" iconSize={8} wrapperStyle={{ fontSize: 11, fontFamily: 'Inter' }} />
+              <Bar name="Total" dataKey="orders" fill="var(--cyan)" radius={[3, 3, 0, 0]} opacity={0.8} />
+              <Bar name="Completed" dataKey="completed" fill="var(--green)" radius={[3, 3, 0, 0]} />
+              <Bar name="Pending" dataKey="pending" fill="var(--amber)" radius={[3, 3, 0, 0]} />
+              <Bar name="Cancelled" dataKey="cancelled" fill="var(--red)" radius={[3, 3, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>
       </div>
 
       {/* Bottom Row */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1.8fr', gap: 16 }}>
         {/* Top Selling Products */}
         <div className="chart-card" style={{ gridColumn: 'span 1' }}>
           <div className="chart-header" style={{ marginBottom: 16 }}>
             <div>
               <div className="chart-title">Top Products</div>
-              <div className="chart-subtitle">By units sold</div>
+              <div className="chart-subtitle">Ranked by units sold</div>
             </div>
           </div>
-          {topProducts.length > 0 ? topProducts.map((p, i) => (
-            <div key={p.name} style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 12 }}>
-              <span style={{ width: 20, height: 20, borderRadius: 6, background: 'var(--bg-elevated)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', flexShrink: 0 }}>{i + 1}</span>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--text-primary)', marginBottom: 3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.name}</div>
-                <div style={{ height: 4, background: 'var(--bg-elevated)', borderRadius: 2, overflow: 'hidden' }}>
-                  <div style={{ height: '100%', width: `${(p.sales / 310) * 100}%`, background: 'var(--cyan)', borderRadius: 2 }} />
+          
+          {topSellingList.length > 0 ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+              {topSellingList.map((p, i) => (
+                <div key={p.id} style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <span style={{ width: 20, height: 20, borderRadius: '50%', background: 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 800, color: 'var(--text-muted)', flexShrink: 0 }}>{i + 1}</span>
+                  
+                  <img 
+                    src={p.image} 
+                    alt={p.name} 
+                    style={{ width: '38px', height: '38px', objectFit: 'cover', borderRadius: '8px', border: '1px solid rgba(255,255,255,0.05)', flexShrink: 0 }}
+                  />
+
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4, alignItems: 'baseline' }}>
+                      <span style={{ fontSize: '12px', fontWeight: 700, color: 'white', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, marginRight: 8 }}>
+                        {p.name}
+                      </span>
+                      <span style={{ fontSize: '11px', color: 'var(--cyan)', fontWeight: 600 }}>
+                        {p.unitsSold} units
+                      </span>
+                    </div>
+
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', color: 'var(--text-muted)', marginBottom: 4 }}>
+                      <span>Rev: <b>₹{p.revenue.toLocaleString()}</b></span>
+                      <span>Stock: <b>{p.stock}</b></span>
+                    </div>
+
+                    <div style={{ height: '5px', background: 'rgba(255,255,255,0.05)', borderRadius: '3px', overflow: 'hidden' }}>
+                      <div style={{ height: '100%', width: `${(p.unitsSold / maxUnitsSold) * 100}%`, background: 'linear-gradient(90deg, #06b6d4, #0891b2)', borderRadius: '3px' }} />
+                    </div>
+                  </div>
                 </div>
-              </div>
-              <span style={{ fontSize: 12, color: 'var(--text-muted)', flexShrink: 0 }}>{p.sales}</span>
+              ))}
             </div>
-          )) : (
-            <div style={{ padding: '24px 0', textAlign: 'center', color: 'var(--text-muted)', fontSize: '13px' }}>
-              No products found.
+          ) : (
+            <div style={{ padding: '40px 16px', textAlign: 'center', color: 'var(--text-muted)', fontSize: '12px' }}>
+              No completed order sales recorded yet.
             </div>
           )}
         </div>
 
         {/* Recent Orders */}
-        <div className="table-card" style={{ gridColumn: 'span 2' }}>
+        <div className="table-card" style={{ gridColumn: 'span 1' }}>
           <div className="table-toolbar">
-            <span className="table-title">Recent Orders</span>
+            <span className="table-title">Recent Sales Transactions</span>
             <span className="table-count">{recentOrders.length} orders</span>
           </div>
           <table className="admin-table">
@@ -207,7 +398,7 @@ const Dashboard = () => {
             <tbody>
               {recentOrders.length > 0 ? recentOrders.map(o => (
                 <tr key={o.id}>
-                  <td style={{ color: 'var(--cyan)', fontWeight: 600 }}>{o.id}</td>
+                  <td style={{ color: 'var(--cyan)', fontWeight: 600 }}>{o.order_number}</td>
                   <td>{o.customerName}</td>
                   <td style={{ fontWeight: 600 }}>₹{o.total}</td>
                   <td><span className={`badge ${statusColor(o.status)}`}>{o.status}</span></td>
@@ -222,26 +413,6 @@ const Dashboard = () => {
               )}
             </tbody>
           </table>
-        </div>
-      </div>
-
-      {/* Activity Feed */}
-      <div className="chart-card" style={{ marginTop: 16 }}>
-        <div className="chart-header" style={{ marginBottom: 16 }}>
-          <div><div className="chart-title">Activity Feed</div><div className="chart-subtitle">Recent store events</div></div>
-        </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
-          {activityFeed.length > 0 ? activityFeed.map((a, i) => (
-            <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '12px 0', borderBottom: i < activityFeed.length - 1 ? '1px solid var(--border)' : 'none' }}>
-              <div style={{ width: 36, height: 36, background: `${a.color}15`, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 18, flexShrink: 0 }}>{a.icon}</div>
-              <span style={{ fontSize: 13, color: 'var(--text-primary)', flex: 1 }}>{a.text}</span>
-              <span style={{ fontSize: 11, color: 'var(--text-muted)', flexShrink: 0 }}>{a.time}</span>
-            </div>
-          )) : (
-            <div style={{ padding: '24px 0', textAlign: 'center', color: 'var(--text-muted)', fontSize: '13px' }}>
-              No recent activities found.
-            </div>
-          )}
         </div>
       </div>
     </AdminLayout>
