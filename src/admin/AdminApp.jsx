@@ -19,6 +19,7 @@ import Reports from './pages/Reports';
 import Settings from './pages/Settings';
 import ActivityLogs from './pages/ActivityLogs';
 import AutomatedChanges from './pages/AutomatedChanges';
+import Support from './pages/Support';
 
 const AdminRoute = ({ children }) => {
   const { isAdminAuthenticated, checkingAuth } = useAdminAuth();
@@ -69,6 +70,7 @@ const AdminRoutes = () => {
       <Route path="inventory" element={<AdminRoute><Inventory /></AdminRoute>} />
       <Route path="promotions" element={<AdminRoute><Promotions /></AdminRoute>} />
       <Route path="automated-changes" element={<AdminRoute><AutomatedChanges /></AdminRoute>} />
+      <Route path="support" element={<AdminRoute><Support /></AdminRoute>} />
       <Route path="cms" element={<AdminRoute><CMS /></AdminRoute>} />
       <Route path="reports" element={<AdminRoute><Reports /></AdminRoute>} />
       <Route path="settings" element={<AdminRoute><Settings /></AdminRoute>} />

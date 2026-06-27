@@ -455,6 +455,19 @@ const FloatingPharmacist = () => {
       uploadedUrl = await handleFileUpload(file);
     }
 
+    const tempId = `temp-${Date.now()}`;
+    const tempMsg = {
+      id: tempId,
+      message: text || null,
+      image_url: uploadedUrl,
+      sender_role: 'customer',
+      delivery_status: 'sending',
+      created_at: new Date().toISOString()
+    };
+
+    // Optimistically add message
+    setMessages(prev => [...prev, tempMsg]);
+
     try {
       const messagePayload = {
         prescription_id: activeRx ? activeRx.id : null,
@@ -464,6 +477,7 @@ const FloatingPharmacist = () => {
         image_url: uploadedUrl,
         sender_role: 'customer',
         is_read: false,
+        delivery_status: 'delivered',
         created_at: new Date().toISOString()
       };
 
@@ -475,10 +489,8 @@ const FloatingPharmacist = () => {
 
       if (error) throw error;
 
-      setMessages(prev => {
-        if (prev.some(m => m.id === data.id)) return prev;
-        return [...prev, data];
-      });
+      // Replace optimistic message with actual data from Supabase
+      setMessages(prev => prev.map(m => m.id === tempId ? data : m));
 
       // Clear typing status
       if (typingChanRef.current) {
@@ -490,6 +502,8 @@ const FloatingPharmacist = () => {
       }
     } catch (err) {
       console.error('[Chat] Failed to send message:', err);
+      // Update optimistic message status to failed
+      setMessages(prev => prev.map(m => m.id === tempId ? { ...m, delivery_status: 'failed' } : m));
       showToast('Failed to send message. Please retry.', 'error');
     } finally {
       setIsSending(false);
@@ -788,11 +802,14 @@ const FloatingPharmacist = () => {
               <h3 className="pharm-panel-title">
                 {chatView === 'chat' ? (activeRx ? `Chat: ${activeRx.reference_id}` : 'General Support') : 'Consult a Pharmacist'}
               </h3>
-              <p className="pharm-panel-subtitle">
+              <p className="pharm-panel-subtitle" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                 {typingText ? (
                   <span style={{ color: 'var(--cyan, #06b6d4)', fontWeight: 600 }}>{typingText}</span>
                 ) : (
-                  'Available 8 AM – 10:30 PM · All Days'
+                  <>
+                    <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#10b981', display: 'inline-block' }} />
+                    <span>Pharmacist Online · 8 AM – 10:30 PM</span>
+                  </>
                 )}
               </p>
             </div>
@@ -963,9 +980,36 @@ const FloatingPharmacist = () => {
               {/* Messages Body */}
               <div className="chat-body-scroller">
                 {messages.length === 0 ? (
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100%', opacity: 0.5, gap: 8, padding: 24, textAlign: 'center' }}>
-                    <span style={{ fontSize: 32 }}>💬</span>
-                    <p style={{ fontSize: 12, margin: 0, fontWeight: 600 }}>Start your secure conversation with the pharmacist. We typically reply in minutes.</p>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 12, padding: '18px 14px' }}>
+                    <div style={{
+                      background: 'rgba(6, 182, 212, 0.04)',
+                      border: '1px solid rgba(6, 182, 212, 0.08)',
+                      borderRadius: 12,
+                      padding: 14,
+                      display: 'flex',
+                      gap: 12
+                    }}>
+                      <div style={{
+                        width: 36,
+                        height: 36,
+                        borderRadius: '50%',
+                        background: 'linear-gradient(135deg, #0891b2, #0e7490)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: 16,
+                        color: 'white',
+                        flexShrink: 0
+                      }}>👨‍⚕️</div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                        <h4 style={{ margin: 0, fontSize: 13, fontWeight: 700, color: 'white' }}>Pharmacist Assistant</h4>
+                        <p style={{ margin: 0, fontSize: 12, lineHeight: 1.5, color: '#94a3b8' }}>
+                          👋 Welcome to Sri Venkateshwara Medical Store!<br /><br />
+                          How can we help you today?<br /><br />
+                          You can choose one of the options below or type your question.
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 ) : (
                   messages.map(m => (
@@ -987,12 +1031,8 @@ const FloatingPharmacist = () => {
                           {new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </span>
                         {m.sender_role === 'customer' && (
-                          <span style={{ fontSize: 12, marginLeft: 2, display: 'inline-block' }}>
-                            {m.is_read ? (
-                              <span style={{ color: '#67e8f9' }}>✓✓</span> // cyan tick for read
-                            ) : (
-                              <span>✓</span> // single tick for delivered
-                            )}
+                          <span style={{ fontSize: 10, marginLeft: 4, display: 'inline-block', color: m.delivery_status === 'failed' ? '#ef4444' : '#67e8f9' }}>
+                            {m.delivery_status === 'sending' ? 'Sending...' : m.delivery_status === 'failed' ? 'Failed' : (m.is_read || m.delivery_status === 'read' ? 'Read' : 'Delivered')}
                           </span>
                         )}
                       </div>
@@ -1020,20 +1060,20 @@ const FloatingPharmacist = () => {
               {/* Quick Action Chips */}
               <div className="chat-actions-chips" style={{ flexShrink: 0 }}>
                 {[
-                  'Need Medicine Availability',
-                  'Prescription Help',
-                  'Alternative Medicine',
-                  'Dosage Question',
-                  'Delivery Question',
-                  'Talk to Pharmacist'
-                ].map(chip => (
+                  { label: '💊 Medicine Availability', text: "Hello, I'd like to know if a medicine is available." },
+                  { label: '📄 Prescription Review', text: "Hi, I need help understanding my prescription." },
+                  { label: '🔄 Alternative Medicine', text: "Can you suggest an alternative medicine if my prescribed medicine is unavailable?" },
+                  { label: '💉 Dosage Information', text: "I have a question about the dosage of my medicine." },
+                  { label: '🚚 Delivery & Pickup', text: "I would like information about home delivery or pickup timings." },
+                  { label: '👨‍⚕️ Talk to Pharmacist', text: "Hello Pharmacist, I need assistance with my medicines." }
+                ].map(action => (
                   <button 
-                    key={chip} 
+                    key={action.label} 
                     className="chat-chip"
-                    onClick={() => handleSendMessage(chip)}
+                    onClick={() => handleSendMessage(action.text)}
                     disabled={isSending}
                   >
-                    {chip}
+                    {action.label}
                   </button>
                 ))}
               </div>
@@ -1068,7 +1108,7 @@ const FloatingPharmacist = () => {
                 <input
                   type="text"
                   className="chat-input-field"
-                  placeholder="Type a message…"
+                  placeholder="Ask about medicines, prescriptions, dosage, or delivery..."
                   value={inputText}
                   onChange={handleInputChange}
                   onKeyDown={e => { if (e.key === 'Enter') handleSendMessage(); }}

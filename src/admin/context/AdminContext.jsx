@@ -18,6 +18,7 @@ export const AdminProvider = ({ children }) => {
   const [prescriptions, setPrescriptions] = useState([]);
   const [inventory, setInventory] = useState(mockInventory);
   const [inventoryLogs, setInventoryLogs] = useState(mockInventoryLogs);
+  const [supportConversations, setSupportConversations] = useState([]);
   const [coupons, setCoupons] = useState(mockCoupons);
   const [notifications, setNotifications] = useState(mockNotifications);
   const [activityLogs, setActivityLogs] = useState(mockActivityLogs);
@@ -340,6 +341,20 @@ export const AdminProvider = ({ children }) => {
           role: c.role
         })));
       }
+
+      // 7. Fetch active support conversations
+      try {
+        const { data: convData } = await supabase
+          .from('chat_conversations')
+          .select('*')
+          .order('last_message_time', { ascending: false })
+          .abortSignal(controller.signal);
+        if (convData) {
+          setSupportConversations(convData);
+        }
+      } catch (convErr) {
+        console.warn('[AdminContext] Failed to load chat conversations:', convErr);
+      }
     } catch (e) {
       const isTimeout = e?.name === 'AbortError' || controller.signal.aborted;
       const msg = isTimeout
@@ -475,11 +490,25 @@ export const AdminProvider = ({ children }) => {
       )
       .subscribe();
 
+    // Realtime subscription — refetch when conversations change
+    const convChannel = supabase
+      .channel('conversations-admin')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'chat_conversations' },
+        (payload) => {
+          console.log('[AdminContext] Realtime conversation change:', payload);
+          fetchAllData();
+        }
+      )
+      .subscribe();
+
     return () => {
       supabase.removeChannel(rxChannel);
       supabase.removeChannel(resChannel);
       supabase.removeChannel(prodChannel);
       supabase.removeChannel(invLogChannel);
+      supabase.removeChannel(convChannel);
       supabase.removeChannel(notifChannel);
       supabase.removeChannel(chatChannel);
     };
@@ -800,6 +829,7 @@ export const AdminProvider = ({ children }) => {
     readyForPickupRx: prescriptions.filter(p => p.status === 'ready_for_pickup').length,
     completedRx:      prescriptions.filter(p => p.status === 'completed').length,
     collectedRx:      prescriptions.filter(p => p.status === 'collected').length,
+    unreadSupportChats: supportConversations.reduce((sum, c) => sum + (c.unread_count_admin || 0), 0),
   };
 
   return (
@@ -811,6 +841,7 @@ export const AdminProvider = ({ children }) => {
       customers,
       prescriptions, updatePrescription, fetchPrescriptions,
       inventory, inventoryLogs, adjustStock,
+      supportConversations, setSupportConversations,
       coupons, addCoupon, updateCoupon, deleteCoupon,
       notifications, unreadCount, markAllRead, markRead,
       activityLogs,

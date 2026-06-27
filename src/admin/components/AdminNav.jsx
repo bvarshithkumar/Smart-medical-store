@@ -6,7 +6,7 @@ import {
   LayoutDashboard, Package, ShoppingCart, FileText, Users,
   Warehouse, Tag, Layout, BarChart3, Settings, ClipboardList,
   ChevronLeft, ChevronRight, LogOut, Bell, Search, Moon, Sun,
-  Stethoscope, Calendar
+  Stethoscope, Calendar, MessageSquare
 } from 'lucide-react';
 
 const NAV_ITEMS = [
@@ -18,6 +18,7 @@ const NAV_ITEMS = [
     { path: '/admin/orders', label: 'Orders', icon: ShoppingCart },
     { path: '/admin/reservations', label: 'Reservations', icon: Calendar, badgeKey: 'pendingOrders' },
     { path: '/admin/prescriptions', label: 'Prescriptions', icon: FileText, badgeKey: 'pendingRx' },
+    { path: '/admin/support', label: 'Customer Support', icon: MessageSquare, badgeKey: 'unreadChats' },
     { path: '/admin/customers', label: 'Customers', icon: Users },
   ]},
   { section: 'Operations', items: [
@@ -43,7 +44,11 @@ export const Sidebar = ({ collapsed, onToggle }) => {
     ? location.pathname === '/admin'
     : location.pathname.startsWith(path);
 
-  const badgeValues = { pendingOrders: metrics.pendingOrders, pendingRx: metrics.pendingRx };
+  const badgeValues = { 
+    pendingOrders: metrics.pendingOrders, 
+    pendingRx: metrics.pendingRx, 
+    unreadChats: metrics.unreadSupportChats || 0 
+  };
 
   return (
     <aside className={`admin-sidebar${collapsed ? ' collapsed' : ''}`}>
