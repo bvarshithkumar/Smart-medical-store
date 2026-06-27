@@ -44,7 +44,62 @@ CREATE POLICY "anon_all_conversations" ON public.chat_conversations
     USING (true)
     WITH CHECK (true);
 
--- 2. Add columns to public.chat_messages to support conversations, delivery status, and file attachments
+-- 2. Create the public.chat_messages table if it does not exist
+CREATE TABLE IF NOT EXISTS public.chat_messages (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    prescription_id UUID REFERENCES public.prescriptions(id) ON DELETE CASCADE,
+    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+    customer_name TEXT,
+    message TEXT,
+    image_url TEXT,
+    sender_role TEXT NOT NULL, -- 'customer' | 'pharmacist'
+    is_read BOOLEAN NOT NULL DEFAULT false,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now())
+);
+
+-- Enable RLS on public.chat_messages
+ALTER TABLE public.chat_messages ENABLE ROW LEVEL SECURITY;
+
+-- Drop existing policies if any
+DROP POLICY IF EXISTS "admin_chats" ON public.chat_messages;
+DROP POLICY IF EXISTS "customer_chats" ON public.chat_messages;
+DROP POLICY IF EXISTS "chat_select_anon" ON public.chat_messages;
+DROP POLICY IF EXISTS "chat_insert_anon" ON public.chat_messages;
+
+-- Create policies for public.chat_messages
+CREATE POLICY "admin_chats" ON public.chat_messages
+    FOR ALL TO authenticated
+    USING (EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin'))
+    WITH CHECK (EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'admin'));
+
+CREATE POLICY "customer_chats" ON public.chat_messages
+    FOR ALL TO authenticated
+    USING (
+      auth.uid() = user_id
+      OR (prescription_id IS NOT NULL AND EXISTS (
+        SELECT 1 FROM public.prescriptions
+        WHERE prescriptions.id = chat_messages.prescription_id
+          AND prescriptions.user_id = auth.uid()
+      ))
+    )
+    WITH CHECK (
+      auth.uid() = user_id
+      AND (prescription_id IS NULL OR EXISTS (
+        SELECT 1 FROM public.prescriptions
+        WHERE prescriptions.id = chat_messages.prescription_id
+          AND prescriptions.user_id = auth.uid()
+      ))
+    );
+
+CREATE POLICY "chat_select_anon" ON public.chat_messages
+    FOR SELECT TO anon
+    USING (prescription_id IS NOT NULL);
+
+CREATE POLICY "chat_insert_anon" ON public.chat_messages
+    FOR INSERT TO anon
+    WITH CHECK (prescription_id IS NOT NULL);
+
+-- Add support chat columns to public.chat_messages
 ALTER TABLE public.chat_messages ADD COLUMN IF NOT EXISTS conversation_id UUID REFERENCES public.chat_conversations(id) ON DELETE CASCADE;
 ALTER TABLE public.chat_messages ADD COLUMN IF NOT EXISTS delivery_status TEXT DEFAULT 'delivered'; -- 'sending' | 'delivered' | 'read' | 'failed'
 ALTER TABLE public.chat_messages ADD COLUMN IF NOT EXISTS file_name TEXT;
