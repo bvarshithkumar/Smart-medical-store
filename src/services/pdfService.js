@@ -4,31 +4,38 @@ import { jsPDF } from 'jspdf';
  * Loads an image URL and returns a base64 dataURL for use in jsPDF.
  * Falls back to a simple blue-cross SVG placeholder if the URL is missing or fails.
  */
-const imageToDataURL = async (url) => {
-  const fallback = () => {
-    // Generate a simple blue medical-cross SVG as a data URL placeholder
-    const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 60 60">
-      <rect width="60" height="60" rx="8" fill="#EFF6FF"/>
-      <rect x="24" y="12" width="12" height="36" rx="4" fill="#2563EB" opacity="0.7"/>
-      <rect x="12" y="24" width="36" height="12" rx="4" fill="#2563EB" opacity="0.7"/>
-    </svg>`;
-    return 'data:image/svg+xml;base64,' + btoa(svg);
-  };
+const imageToDataURL = (url) => {
+  return new Promise((resolve) => {
+    if (!url) {
+      resolve(null);
+      return;
+    }
+    
+    let absoluteUrl = url;
+    if (typeof window !== 'undefined' && url.startsWith('/')) {
+      absoluteUrl = window.location.origin + url;
+    }
 
-  if (!url) return fallback();
-  try {
-    const response = await fetch(url, { mode: 'cors' });
-    if (!response.ok) return fallback();
-    const blob = await response.blob();
-    return new Promise((resolve) => {
-      const reader = new FileReader();
-      reader.onloadend = () => resolve(reader.result || fallback());
-      reader.onerror = () => resolve(fallback());
-      reader.readAsDataURL(blob);
-    });
-  } catch {
-    return fallback();
-  }
+    const img = new Image();
+    img.crossOrigin = 'Anonymous';
+    img.onload = () => {
+      try {
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0);
+        resolve(canvas.toDataURL('image/png'));
+      } catch (err) {
+        console.warn('[PDF] Canvas rendering failed for:', url, err);
+        resolve(null);
+      }
+    };
+    img.onerror = () => {
+      resolve(null);
+    };
+    img.src = absoluteUrl;
+  });
 };
 
 /**
@@ -180,17 +187,30 @@ export const generateQuotePDF = async ({
 
   medicines.forEach((med, idx) => {
     const imgDataURL = imageDataURLs[idx];
+    let drewImage = false;
+    if (imgDataURL) {
+      try {
+        // Clip to a rounded square by drawing a filled rect as background first
+        doc.setFillColor(239, 246, 255);
+        doc.roundedRect(17, y + 1, IMG_SIZE, IMG_SIZE, 1.5, 1.5, 'F');
+        doc.addImage(imgDataURL, 'PNG', 17, y + 1, IMG_SIZE, IMG_SIZE);
+        drewImage = true;
+      } catch (err) {
+        console.warn('[PDF] Failed to draw image in PDF:', err);
+      }
+    }
 
-    // Draw medicine thumbnail (replaces checkbox)
-    try {
-      // Clip to a rounded square by drawing a filled rect as background first
-      doc.setFillColor(239, 246, 255);
+    if (!drewImage) {
+      // Draw a neat vector blue medical-cross placeholder directly in the PDF
+      doc.setFillColor(239, 246, 255); // light blue
       doc.roundedRect(17, y + 1, IMG_SIZE, IMG_SIZE, 1.5, 1.5, 'F');
-      doc.addImage(imgDataURL, 'PNG', 17, y + 1, IMG_SIZE, IMG_SIZE);
-    } catch {
-      // If addImage fails, draw placeholder box
-      doc.setFillColor(239, 246, 255);
-      doc.roundedRect(17, y + 1, IMG_SIZE, IMG_SIZE, 1.5, 1.5, 'F');
+      
+      // Draw cross using blue rectangles
+      doc.setFillColor(37, 99, 235); // blue
+      // Vertical bar
+      doc.rect(17 + (IMG_SIZE - 2) / 2, y + 1 + (IMG_SIZE - 6) / 2, 2, 6, 'F');
+      // Horizontal bar
+      doc.rect(17 + (IMG_SIZE - 6) / 2, y + 1 + (IMG_SIZE - 2) / 2, 6, 2, 'F');
     }
 
     const details = getMedicineDetails(med.name);
