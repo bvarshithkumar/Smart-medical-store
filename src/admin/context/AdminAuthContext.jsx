@@ -23,6 +23,10 @@ export const AdminAuthProvider = ({ children }) => {
     }
   }, [adminUser]);
 
+  // Keep a ref so verifySession can read current adminUser without it being a dep
+  const adminUserRef = React.useRef(adminUser);
+  useEffect(() => { adminUserRef.current = adminUser; }, [adminUser]);
+
   useEffect(() => {
     let active = true;
 
@@ -48,7 +52,7 @@ export const AdminAuthProvider = ({ children }) => {
         }
 
         // If no valid session or not an admin, clear the adminUser session state
-        if (adminUser) {
+        if (adminUserRef.current) {
           console.warn('[AdminAuthContext] Invalid or missing Supabase session for admin user. Clearing session.');
           setAdminUser(null);
         }
@@ -75,7 +79,7 @@ export const AdminAuthProvider = ({ children }) => {
       active = false;
       subscription.unsubscribe();
     };
-  }, [adminUser]);
+  }, []); // Run once on mount only
 
   const adminLogin = async (email, password, remember) => {
     setLoginError('');

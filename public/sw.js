@@ -3,7 +3,7 @@
    Premium PWA with full offline support & smart caching
    ============================================================ */
 
-const CACHE_VERSION = 'v2.0.0';
+const CACHE_VERSION = 'v2.1.0';
 const STATIC_CACHE   = `svms-static-${CACHE_VERSION}`;
 const DYNAMIC_CACHE  = `svms-dynamic-${CACHE_VERSION}`;
 const IMAGE_CACHE    = `svms-images-${CACHE_VERSION}`;
@@ -103,23 +103,26 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // ── Strategy 3: Static assets (JS/CSS/fonts) → Stale-while-revalidate
+  // ── Strategy 3: Static assets (JS/CSS/fonts) → Network-first with cache fallback
+  // NOTE: Using network-first (NOT stale-while-revalidate) so that after a new
+  // deployment, fresh chunk filenames are always fetched. Stale-while-revalidate
+  // was causing blank pages by returning old cached chunks whose filenames no
+  // longer existed in the new build.
   if (
     /\.(js|css|woff2?|ttf|eot)$/i.test(url.pathname) ||
     request.destination === 'script' ||
     request.destination === 'style'
   ) {
     event.respondWith(
-      caches.match(request).then((cached) => {
-        const fetchPromise = fetch(request).then((response) => {
+      fetch(request)
+        .then((response) => {
           if (response.ok) {
             const cloned = response.clone();
             caches.open(STATIC_CACHE).then((cache) => cache.put(request, cloned));
           }
           return response;
-        });
-        return cached || fetchPromise;
-      })
+        })
+        .catch(() => caches.match(request))
     );
     return;
   }
