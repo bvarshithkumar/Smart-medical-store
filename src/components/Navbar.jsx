@@ -109,8 +109,7 @@ const Navbar = ({ showSearch = true, searchQuery, onSearchChange }) => {
 
   const [theme, setTheme] = useState(() => {
     const saved = localStorage.getItem('svms-theme');
-    if (saved) return saved;
-    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    return saved || 'dark';
   });
 
   useEffect(() => {
