@@ -496,178 +496,7 @@ const Products = () => {
     setIsImporting(false);
   };
 
-  const ProductModal = () => (
-    <div className="modal-overlay" onClick={closeModal} style={{ opacity: 1, pointerEvents: 'auto', display: 'flex', position: 'fixed', inset: 0, zIndex: 10000, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', alignItems: 'center', justifyContent: 'center' }}>
-      <div className="modal modal-lg" onClick={e => e.stopPropagation()}>
-        <div className="modal-header">
-          <div>
-            <h2>{modal === 'add' ? 'Add New Product' : 'Edit Product'}</h2>
-            <p>Fill in the product details below</p>
-          </div>
-          <button className="modal-close" onClick={closeModal}>×</button>
-        </div>
-        <div className="modal-body" style={{ gap: 14 }}>
-          
-          <h3 style={{ fontSize: 13, textTransform: 'uppercase', color: 'var(--cyan)', borderBottom: '1px solid var(--border)', paddingBottom: 4 }}>Basic Information</h3>
-          <div className="form-row form-row-2">
-            <div className="form-group">
-              <label className="form-label">Product Name *</label>
-              <input className="form-input" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="e.g. Dolo 650 Tablet" />
-            </div>
-            <div className="form-group">
-              <label className="form-label">Generic Name</label>
-              <input className="form-input" value={form.genericName || form.generic_name} onChange={e => setForm(f => ({ ...f, genericName: e.target.value, generic_name: e.target.value }))} placeholder="e.g. Paracetamol" />
-            </div>
-          </div>
-          <div className="form-row form-row-3">
-            <div className="form-group">
-              <label className="form-label">Brand</label>
-              <input className="form-input" value={form.brand} onChange={e => setForm(f => ({ ...f, brand: e.target.value }))} placeholder="e.g. Micro Labs" />
-            </div>
-            <div className="form-group">
-              <label className="form-label">Manufacturer</label>
-              <input className="form-input" value={form.manufacturer} onChange={e => setForm(f => ({ ...f, manufacturer: e.target.value }))} placeholder="e.g. Abbott" />
-            </div>
-            <div className="form-group">
-              <label className="form-label">Category</label>
-              <select className="form-select" value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))}>
-                {CATEGORIES.filter(c => c !== 'All').map(c => <option key={c}>{c}</option>)}
-              </select>
-            </div>
-          </div>
-          <div className="form-group">
-            <label className="form-label">Description</label>
-            <textarea className="form-textarea" value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} placeholder="Short description of the medicine details…" />
-          </div>
 
-          <h3 style={{ fontSize: 13, textTransform: 'uppercase', color: 'var(--cyan)', borderBottom: '1px solid var(--border)', paddingBottom: 4, marginTop: 10 }}>Pricing & Discount</h3>
-          <div className="form-row form-row-3">
-            <div className="form-group">
-              <label className="form-label">MRP (₹) *</label>
-              <input className="form-input" type="number" value={form.mrp} onChange={e => handlePriceChange('mrp', e.target.value)} placeholder="0.00" />
-            </div>
-            <div className="form-group">
-              <label className="form-label">Selling Price (₹) *</label>
-              <input className="form-input" type="number" value={form.price} onChange={e => handlePriceChange('price', e.target.value)} placeholder="0.00" />
-            </div>
-            <div className="form-group">
-              <label className="form-label">Discount (% Auto Calculated)</label>
-              <input className="form-input" type="number" value={form.discount} disabled style={{ opacity: 0.6, background: 'rgba(0,0,0,0.1)' }} />
-            </div>
-          </div>
-
-          <h3 style={{ fontSize: 13, textTransform: 'uppercase', color: 'var(--cyan)', borderBottom: '1px solid var(--border)', paddingBottom: 4, marginTop: 10 }}>Inventory & Stock</h3>
-          <div className="form-row form-row-3">
-            <div className="form-group">
-              <label className="form-label">Stock Quantity *</label>
-              <input className="form-input" type="number" value={form.stock} onChange={e => setForm(f => ({ ...f, stock: e.target.value }))} placeholder="0" />
-            </div>
-            <div className="form-group">
-              <label className="form-label">SKU (Auto generates if blank)</label>
-              <input className="form-input" value={form.sku} onChange={e => setForm(f => ({ ...f, sku: e.target.value }))} placeholder="e.g. CRC-500" />
-            </div>
-            <div className="form-group">
-              <label className="form-label">Batch Number</label>
-              <input className="form-input" value={form.batchNo || form.batch_no} onChange={e => setForm(f => ({ ...f, batchNo: e.target.value, batch_no: e.target.value }))} placeholder="e.g. B-GEN999" />
-            </div>
-          </div>
-          <div className="form-row form-row-2">
-            <div className="form-group">
-              <label className="form-label">Expiry Date</label>
-              <input className="form-input" type="date" value={form.expiryDate || form.expiry_date} onChange={e => setForm(f => ({ ...f, expiryDate: e.target.value, expiry_date: e.target.value }))} />
-            </div>
-            <div className="form-group">
-              <label className="form-label">Reorder Level</label>
-              <input className="form-input" type="number" value={form.reorderLevel || form.reorder_level} onChange={e => setForm(f => ({ ...f, reorderLevel: e.target.value, reorder_level: e.target.value }))} placeholder="10" />
-            </div>
-          </div>
-
-          <h3 style={{ fontSize: 13, textTransform: 'uppercase', color: 'var(--cyan)', borderBottom: '1px solid var(--border)', paddingBottom: 4, marginTop: 10 }}>Product Image</h3>
-          <div className="form-group" style={{ marginBottom: 16 }}>
-            <div 
-              style={{ 
-                border: '2px dashed var(--border, #334155)', 
-                borderRadius: '8px', 
-                padding: '20px', 
-                textAlign: 'center', 
-                background: 'rgba(255, 255, 255, 0.01)',
-                cursor: 'pointer',
-                transition: 'border-color 0.2s',
-              }}
-              onDragOver={(e) => { e.preventDefault(); e.currentTarget.style.borderColor = 'var(--cyan)'; }}
-              onDragLeave={(e) => { e.preventDefault(); e.currentTarget.style.borderColor = 'var(--border)'; }}
-              onDrop={async (e) => {
-                e.preventDefault();
-                e.currentTarget.style.borderColor = 'var(--border)';
-                const file = e.dataTransfer.files?.[0];
-                if (file) {
-                  const compressed = await compressImage(file);
-                  await uploadImage(compressed);
-                }
-              }}
-            >
-              <div style={{ display: 'flex', gap: 16, alignItems: 'center', justifyContent: 'center' }}>
-                {form.image_url || form.image ? (
-                  <div style={{ position: 'relative', width: 90, height: 90, borderRadius: 8, overflow: 'hidden', border: '1px solid var(--border)', background: 'white' }}>
-                    <img src={form.image_url || form.image} alt="Product Preview" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-                    <button 
-                      type="button" 
-                      onClick={() => setForm(prev => ({ ...prev, image_url: '', image: '' }))} 
-                      style={{ position: 'absolute', top: 2, right: 2, background: 'rgba(0,0,0,0.6)', border: 'none', color: 'white', borderRadius: '50%', width: 20, height: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
-                    >
-                      <X size={12} />
-                    </button>
-                  </div>
-                ) : (
-                  <div style={{ width: 90, height: 90, borderRadius: 8, background: 'var(--bg-body)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px dashed var(--border)', color: 'var(--text-muted)', fontSize: 11 }}>
-                    No Image
-                  </div>
-                )}
-                <div style={{ textAlign: 'left' }}>
-                  <input 
-                    type="file" 
-                    accept="image/*" 
-                    onChange={handleProductImageUpload} 
-                    disabled={uploading} 
-                    style={{ display: 'none' }}
-                    id="product-image-file"
-                  />
-                  <label 
-                    htmlFor="product-image-file" 
-                    className="btn btn-secondary btn-sm"
-                    style={{ cursor: uploading ? 'not-allowed' : 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6 }}
-                  >
-                    {uploading ? <Loader2 size={12} className="spin" style={{ animation: 'spin 1s linear infinite' }} /> : <Upload size={12} />}
-                    {uploading ? 'Uploading...' : 'Upload Image'}
-                  </label>
-                  <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>
-                    Drag & Drop or click to upload. Large images are compressed automatically.
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div style={{ display: 'flex', gap: 24, marginTop: 10 }}>
-            <label className="form-toggle" onClick={() => setForm(f => ({ ...f, prescriptionRequired: !f.prescriptionRequired }))}>
-              <div className={`toggle-switch${form.prescriptionRequired ? ' on' : ''}`}><div className="toggle-knob" /></div>
-              <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>Prescription Required</span>
-            </label>
-            <label className="form-toggle" onClick={() => setForm(f => ({ ...f, featured: !f.featured }))}>
-              <div className={`toggle-switch${form.featured ? ' on' : ''}`}><div className="toggle-knob" /></div>
-              <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>Featured Product</span>
-            </label>
-          </div>
-        </div>
-        <div className="modal-footer">
-          <button className="btn btn-secondary" onClick={closeModal}>Cancel</button>
-          <button className="btn btn-primary" onClick={handleSave}>
-            {modal === 'add' ? '+ Add Product' : '💾 Save Changes'}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
 
   return (
     <AdminLayout>
@@ -769,7 +598,19 @@ const Products = () => {
       )}
 
       {/* Modals */}
-      {(modal === 'add' || modal === 'edit') && <ProductModal />}
+      {(modal === 'add' || modal === 'edit') && (
+        <ProductModal
+          modal={modal}
+          form={form}
+          setForm={setForm}
+          closeModal={closeModal}
+          uploading={uploading}
+          handleProductImageUpload={handleProductImageUpload}
+          handlePriceChange={handlePriceChange}
+          handleSave={handleSave}
+          CATEGORIES={CATEGORIES}
+        />
+      )}
       {modal === 'delete' && (
         <div className="modal-overlay" onClick={closeModal} style={{ opacity: 1, pointerEvents: 'auto', display: 'flex', position: 'fixed', inset: 0, zIndex: 10000, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', alignItems: 'center', justifyContent: 'center' }}>
           <div className="modal modal-sm" onClick={e => e.stopPropagation()}>
@@ -905,3 +746,228 @@ const Products = () => {
 };
 
 export default Products;
+
+const ProductModal = ({
+  modal,
+  form,
+  setForm,
+  closeModal,
+  uploading,
+  handleProductImageUpload,
+  handlePriceChange,
+  handleSave,
+  CATEGORIES
+}) => {
+  return (
+    <div className="modal-overlay" onClick={closeModal} style={{ opacity: 1, pointerEvents: 'auto', display: 'flex', position: 'fixed', inset: 0, zIndex: 10000, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', alignItems: 'center', justifyContent: 'center' }}>
+      <div className="modal modal-lg" onClick={e => e.stopPropagation()}>
+        <div className="modal-header">
+          <div>
+            <h2>{modal === 'add' ? 'Add New Product' : 'Edit Product'}</h2>
+            <p>Fill in the product details below</p>
+          </div>
+          <button className="modal-close" onClick={closeModal}>×</button>
+        </div>
+        <div className="modal-body" style={{ gap: 14 }}>
+          
+          <h3 style={{ fontSize: 13, textTransform: 'uppercase', color: 'var(--cyan)', borderBottom: '1px solid var(--border)', paddingBottom: 4 }}>Basic Information</h3>
+          <div className="form-row form-row-2">
+            <div className="form-group">
+              <label className="form-label">Product Name *</label>
+              <input className="form-input" value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="e.g. Dolo 650 Tablet" />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Generic Name</label>
+              <input className="form-input" value={form.genericName || form.generic_name} onChange={e => setForm(f => ({ ...f, genericName: e.target.value, generic_name: e.target.value }))} placeholder="e.g. Paracetamol" />
+            </div>
+          </div>
+          <div className="form-row form-row-3">
+            <div className="form-group">
+              <label className="form-label">Brand</label>
+              <input className="form-input" value={form.brand} onChange={e => setForm(f => ({ ...f, brand: e.target.value }))} placeholder="e.g. Micro Labs" />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Manufacturer</label>
+              <input className="form-input" value={form.manufacturer} onChange={e => setForm(f => ({ ...f, manufacturer: e.target.value }))} placeholder="e.g. Abbott" />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Category</label>
+              <select className="form-select" value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))}>
+                {CATEGORIES.filter(c => c !== 'All').map(c => <option key={c}>{c}</option>)}
+              </select>
+            </div>
+          </div>
+          <div className="form-group">
+            <label className="form-label">Description</label>
+            <textarea className="form-textarea" value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} placeholder="Short description of the medicine details…" />
+          </div>
+
+          <h3 style={{ fontSize: 13, textTransform: 'uppercase', color: 'var(--cyan)', borderBottom: '1px solid var(--border)', paddingBottom: 4, marginTop: 10 }}>Pricing & Discount</h3>
+          <div className="form-row form-row-3">
+            <div className="form-group">
+              <label className="form-label">MRP (₹) *</label>
+              <input className="form-input" type="number" value={form.mrp} onChange={e => handlePriceChange('mrp', e.target.value)} placeholder="0.00" />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Selling Price (₹) *</label>
+              <input className="form-input" type="number" value={form.price} onChange={e => handlePriceChange('price', e.target.value)} placeholder="0.00" />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Discount (% Auto Calculated)</label>
+              <input className="form-input" type="number" value={form.discount} disabled style={{ opacity: 0.6, background: 'rgba(0,0,0,0.1)' }} />
+            </div>
+          </div>
+
+          <h3 style={{ fontSize: 13, textTransform: 'uppercase', color: 'var(--cyan)', borderBottom: '1px solid var(--border)', paddingBottom: 4, marginTop: 10 }}>Inventory & Stock</h3>
+          <div className="form-row form-row-3">
+            <div className="form-group">
+              <label className="form-label">Stock Quantity *</label>
+              <input className="form-input" type="number" value={form.stock} onChange={e => setForm(f => ({ ...f, stock: e.target.value }))} placeholder="0" />
+            </div>
+            <div className="form-group">
+              <label className="form-label">SKU (Auto generates if blank)</label>
+              <input className="form-input" value={form.sku} onChange={e => setForm(f => ({ ...f, sku: e.target.value }))} placeholder="e.g. CRC-500" />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Batch Number</label>
+              <input className="form-input" value={form.batchNo || form.batch_no} onChange={e => setForm(f => ({ ...f, batchNo: e.target.value, batch_no: e.target.value }))} placeholder="e.g. B-GEN999" />
+            </div>
+          </div>
+          <div className="form-row form-row-2">
+            <div className="form-group">
+              <label className="form-label">Expiry Date</label>
+              <input className="form-input" type="date" value={form.expiryDate || form.expiry_date} onChange={e => setForm(f => ({ ...f, expiryDate: e.target.value, expiry_date: e.target.value }))} />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Reorder Level</label>
+              <input className="form-input" type="number" value={form.reorderLevel || form.reorder_level} onChange={e => setForm(f => ({ ...f, reorderLevel: e.target.value, reorder_level: e.target.value }))} placeholder="10" />
+            </div>
+          </div>
+
+          <h3 style={{ fontSize: 13, textTransform: 'uppercase', color: 'var(--cyan)', borderBottom: '1px solid var(--border)', paddingBottom: 4, marginTop: 10 }}>Product Image</h3>
+          <div className="form-group" style={{ marginBottom: 16 }}>
+            <div 
+              style={{ 
+                border: '2px dashed var(--border, #334155)', 
+                borderRadius: '8px', 
+                padding: '20px', 
+                textAlign: 'center', 
+                background: 'rgba(255, 255, 255, 0.01)',
+                cursor: 'pointer',
+                transition: 'border-color 0.2s',
+              }}
+              onDragOver={(e) => { e.preventDefault(); e.currentTarget.style.borderColor = 'var(--cyan)'; }}
+              onDragLeave={(e) => { e.preventDefault(); e.currentTarget.style.borderColor = 'var(--border)'; }}
+              onDrop={async (e) => {
+                e.preventDefault();
+                e.currentTarget.style.borderColor = 'var(--border)';
+                const file = e.dataTransfer.files?.[0];
+                if (file) {
+                  // Compress image inline before upload
+                  const reader = new FileReader();
+                  reader.readAsDataURL(file);
+                  reader.onload = (event) => {
+                    const img = new Image();
+                    img.src = event.target.result;
+                    img.onload = () => {
+                      const canvas = document.createElement('canvas');
+                      const MAX_WIDTH = 800;
+                      const MAX_HEIGHT = 800;
+                      let width = img.width;
+                      let height = img.height;
+
+                      if (width > height) {
+                        if (width > MAX_WIDTH) {
+                          height *= MAX_WIDTH / width;
+                          width = MAX_WIDTH;
+                        }
+                      } else {
+                        if (height > MAX_HEIGHT) {
+                          width *= MAX_HEIGHT / height;
+                          height = MAX_HEIGHT;
+                        }
+                      }
+
+                      canvas.width = width;
+                      canvas.height = height;
+                      const ctx = canvas.getContext('2d');
+                      ctx.drawImage(img, 0, 0, width, height);
+
+                      canvas.toBlob(async (blob) => {
+                        const compressedFile = new File([blob], file.name, {
+                          type: 'image/jpeg',
+                          lastModified: Date.now()
+                        });
+                        // Define upload logic directly or call a parent upload handler
+                        // For simplicity, we trigger the upload file handler
+                        const mockEvent = { target: { files: [compressedFile] } };
+                        handleProductImageUpload(mockEvent);
+                      }, 'image/jpeg', 0.7);
+                    };
+                  };
+                }
+              }}
+            >
+              <div style={{ display: 'flex', gap: 16, alignItems: 'center', justifyContent: 'center' }}>
+                {form.image_url || form.image ? (
+                  <div style={{ position: 'relative', width: 90, height: 90, borderRadius: 8, overflow: 'hidden', border: '1px solid var(--border)', background: 'white' }}>
+                    <img src={form.image_url || form.image} alt="Product Preview" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+                    <button 
+                      type="button" 
+                      onClick={() => setForm(prev => ({ ...prev, image_url: '', image: '' }))} 
+                      style={{ position: 'absolute', top: 2, right: 2, background: 'rgba(0,0,0,0.6)', border: 'none', color: 'white', borderRadius: '50%', width: 20, height: 20, display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+                    >
+                      <X size={12} />
+                    </button>
+                  </div>
+                ) : (
+                  <div style={{ width: 90, height: 90, borderRadius: 8, background: 'var(--bg-body)', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px dashed var(--border)', color: 'var(--text-muted)', fontSize: 11 }}>
+                    No Image
+                  </div>
+                )}
+                <div style={{ textAlign: 'left' }}>
+                  <input 
+                    type="file" 
+                    accept="image/*" 
+                    onChange={handleProductImageUpload} 
+                    disabled={uploading} 
+                    style={{ display: 'none' }}
+                    id="product-image-file"
+                  />
+                  <label 
+                    htmlFor="product-image-file" 
+                    className="btn btn-secondary btn-sm"
+                    style={{ cursor: uploading ? 'not-allowed' : 'pointer', display: 'inline-flex', alignItems: 'center', gap: 6 }}
+                  >
+                    {uploading ? <Loader2 size={12} className="spin" style={{ animation: 'spin 1s linear infinite' }} /> : <Upload size={12} />}
+                    {uploading ? 'Uploading...' : 'Upload Image'}
+                  </label>
+                  <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>
+                    Drag & Drop or click to upload. Large images are compressed automatically.
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', gap: 24, marginTop: 10 }}>
+            <label className="form-toggle" onClick={() => setForm(f => ({ ...f, prescriptionRequired: !f.prescriptionRequired }))}>
+              <div className={`toggle-switch${form.prescriptionRequired ? ' on' : ''}`}><div className="toggle-knob" /></div>
+              <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>Prescription Required</span>
+            </label>
+            <label className="form-toggle" onClick={() => setForm(f => ({ ...f, featured: !f.featured }))}>
+              <div className={`toggle-switch${form.featured ? ' on' : ''}`}><div className="toggle-knob" /></div>
+              <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>Featured Product</span>
+            </label>
+          </div>
+        </div>
+        <div className="modal-footer">
+          <button className="btn btn-secondary" onClick={closeModal}>Cancel</button>
+          <button className="btn btn-primary" onClick={handleSave}>
+            {modal === 'add' ? '+ Add Product' : '💾 Save Changes'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
