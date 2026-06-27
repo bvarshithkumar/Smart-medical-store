@@ -25,7 +25,7 @@ const CMS_TABS = [
   { name: 'Testimonials', table: 'cms_testimonials', folder: 'testimonials' },
   { name: 'Health Tips', table: 'cms_tips', folder: 'tips' },
   { name: 'About Us Story', table: null, folder: null },
-  { name: 'Pharmacist Info', table: 'cms_pharmacist', folder: 'pharmacist' },
+  { name: 'Store Location & Contact', table: null, folder: null },
   { name: 'Frequently Asked Questions', table: null, folder: null }
 ];
 
@@ -46,7 +46,7 @@ const SECTION_KEY_MAP = {
   'Testimonials': 'testimonials',
   'Health Tips': 'health_tips',
   'About Us Story': 'about_us',
-  'Pharmacist Info': 'pharmacist_info',
+  'Store Location & Contact': 'pharmacist_info',
   'Frequently Asked Questions': 'faqs'
 };
 
@@ -178,6 +178,17 @@ const CMS = () => {
           padding_bottom: parseInt(sectionForm.padding_bottom) || 40,
           start_date: sectionForm.start_date || null,
           end_date: sectionForm.end_date || null,
+          // Custom Store details fields
+          store_name: sectionForm.store_name || '',
+          address: sectionForm.address || '',
+          phone: sectionForm.phone || '',
+          hours: sectionForm.hours || '',
+          whatsapp: sectionForm.whatsapp || '',
+          email: sectionForm.email || '',
+          emergency: sectionForm.emergency || '',
+          map_url: sectionForm.map_url || '',
+          map_embed_url: sectionForm.map_embed_url || '',
+          store_image: sectionForm.store_image || '',
         };
 
         const data = await cmsService.saveSectionDraft(activeSectionKey, draftPayload);
@@ -1337,6 +1348,135 @@ const CMS = () => {
                 style={{ width: '100%', height: 38, background: 'var(--bg-body)', border: '1px solid var(--border)', borderRadius: 8, padding: '0 8px', color: 'var(--text)', boxSizing: 'border-box' }}
               />
             </div>
+
+            {activeSectionKey === 'pharmacist_info' && (
+              <>
+                <div style={{ gridColumn: '1 / -1', marginTop: 16, borderTop: '1px solid var(--border)', paddingTop: 16 }}>
+                  <h4 style={{ margin: 0, fontSize: 14, fontWeight: 700, color: 'var(--teal-accent, #00A884)' }}>📍 Store Location & Contact Details</h4>
+                  <p style={{ margin: '4px 0 0 0', fontSize: 11, color: 'var(--text-muted)' }}>Configure details displayed inside the "Store Location & Contact" section on the homepage.</p>
+                </div>
+
+                <div className="form-group" style={{ gridColumn: 'span 2' }}>
+                  <label className="form-label" style={{ display: 'block', fontSize: 12, fontWeight: 700, marginBottom: 6 }}>Store Name</label>
+                  <input 
+                    type="text" 
+                    className="form-input" 
+                    value={sectionForm.store_name || ''}
+                    placeholder="Sri Venkateswara Medical and General Store"
+                    onChange={e => setSectionForm(prev => ({ ...prev, store_name: e.target.value }))}
+                    style={{ width: '100%', height: 38, background: 'var(--bg-body)', border: '1px solid var(--border)', borderRadius: 8, padding: '0 8px', color: 'var(--text)', boxSizing: 'border-box' }}
+                  />
+                </div>
+
+                <div className="form-group" style={{ gridColumn: 'span 2' }}>
+                  <label className="form-label" style={{ display: 'block', fontSize: 12, fontWeight: 700, marginBottom: 6 }}>Store Address</label>
+                  <input 
+                    type="text" 
+                    className="form-input" 
+                    value={sectionForm.address || ''}
+                    placeholder="41/E, Bagh Lingampally Rd, Chikkadpally..."
+                    onChange={e => setSectionForm(prev => ({ ...prev, address: e.target.value }))}
+                    style={{ width: '100%', height: 38, background: 'var(--bg-body)', border: '1px solid var(--border)', borderRadius: 8, padding: '0 8px', color: 'var(--text)', boxSizing: 'border-box' }}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label" style={{ display: 'block', fontSize: 12, fontWeight: 700, marginBottom: 6 }}>Phone Number</label>
+                  <input 
+                    type="text" 
+                    className="form-input" 
+                    value={sectionForm.phone || ''}
+                    placeholder="099497 99719"
+                    onChange={e => setSectionForm(prev => ({ ...prev, phone: e.target.value }))}
+                    style={{ width: '100%', height: 38, background: 'var(--bg-body)', border: '1px solid var(--border)', borderRadius: 8, padding: '0 8px', color: 'var(--text)', boxSizing: 'border-box' }}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label" style={{ display: 'block', fontSize: 12, fontWeight: 700, marginBottom: 6 }}>Working Hours</label>
+                  <input 
+                    type="text" 
+                    className="form-input" 
+                    value={sectionForm.hours || ''}
+                    placeholder="9:00 AM - 10:00 PM (Open All Days)"
+                    onChange={e => setSectionForm(prev => ({ ...prev, hours: e.target.value }))}
+                    style={{ width: '100%', height: 38, background: 'var(--bg-body)', border: '1px solid var(--border)', borderRadius: 8, padding: '0 8px', color: 'var(--text)', boxSizing: 'border-box' }}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label" style={{ display: 'block', fontSize: 12, fontWeight: 700, marginBottom: 6 }}>WhatsApp Number</label>
+                  <input 
+                    type="text" 
+                    className="form-input" 
+                    value={sectionForm.whatsapp || ''}
+                    placeholder="+91 99497 99719"
+                    onChange={e => setSectionForm(prev => ({ ...prev, whatsapp: e.target.value }))}
+                    style={{ width: '100%', height: 38, background: 'var(--bg-body)', border: '1px solid var(--border)', borderRadius: 8, padding: '0 8px', color: 'var(--text)', boxSizing: 'border-box' }}
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label className="form-label" style={{ display: 'block', fontSize: 12, fontWeight: 700, marginBottom: 6 }}>Email Support</label>
+                  <input 
+                    type="email" 
+                    className="form-input" 
+                    value={sectionForm.email || ''}
+                    placeholder="support@svmspharmacy.com"
+                    onChange={e => setSectionForm(prev => ({ ...prev, email: e.target.value }))}
+                    style={{ width: '100%', height: 38, background: 'var(--bg-body)', border: '1px solid var(--border)', borderRadius: 8, padding: '0 8px', color: 'var(--text)', boxSizing: 'border-box' }}
+                  />
+                </div>
+
+                <div className="form-group" style={{ gridColumn: 'span 2' }}>
+                  <label className="form-label" style={{ display: 'block', fontSize: 12, fontWeight: 700, marginBottom: 6 }}>Emergency Hotline (24/7)</label>
+                  <input 
+                    type="text" 
+                    className="form-input" 
+                    value={sectionForm.emergency || ''}
+                    placeholder="+91 40 2345 6789 / +91 99497 99719"
+                    onChange={e => setSectionForm(prev => ({ ...prev, emergency: e.target.value }))}
+                    style={{ width: '100%', height: 38, background: 'var(--bg-body)', border: '1px solid var(--border)', borderRadius: 8, padding: '0 8px', color: 'var(--text)', boxSizing: 'border-box' }}
+                  />
+                </div>
+
+                <div className="form-group" style={{ gridColumn: 'span 2' }}>
+                  <label className="form-label" style={{ display: 'block', fontSize: 12, fontWeight: 700, marginBottom: 6 }}>Google Maps Directions Link</label>
+                  <input 
+                    type="text" 
+                    className="form-input" 
+                    value={sectionForm.map_url || ''}
+                    placeholder="https://www.google.com/maps/..."
+                    onChange={e => setSectionForm(prev => ({ ...prev, map_url: e.target.value }))}
+                    style={{ width: '100%', height: 38, background: 'var(--bg-body)', border: '1px solid var(--border)', borderRadius: 8, padding: '0 8px', color: 'var(--text)', boxSizing: 'border-box' }}
+                  />
+                </div>
+
+                <div className="form-group" style={{ gridColumn: 'span 2' }}>
+                  <label className="form-label" style={{ display: 'block', fontSize: 12, fontWeight: 700, marginBottom: 6 }}>Google Maps Iframe Embed URL</label>
+                  <input 
+                    type="text" 
+                    className="form-input" 
+                    value={sectionForm.map_embed_url || ''}
+                    placeholder="https://maps.google.com/maps?q=..."
+                    onChange={e => setSectionForm(prev => ({ ...prev, map_embed_url: e.target.value }))}
+                    style={{ width: '100%', height: 38, background: 'var(--bg-body)', border: '1px solid var(--border)', borderRadius: 8, padding: '0 8px', color: 'var(--text)', boxSizing: 'border-box' }}
+                  />
+                </div>
+
+                <div className="form-group" style={{ gridColumn: 'span 2' }}>
+                  <label className="form-label" style={{ display: 'block', fontSize: 12, fontWeight: 700, marginBottom: 6 }}>Storefront Image URL</label>
+                  <input 
+                    type="text" 
+                    className="form-input" 
+                    value={sectionForm.store_image || ''}
+                    placeholder="/images/store/storefront.png"
+                    onChange={e => setSectionForm(prev => ({ ...prev, store_image: e.target.value }))}
+                    style={{ width: '100%', height: 38, background: 'var(--bg-body)', border: '1px solid var(--border)', borderRadius: 8, padding: '0 8px', color: 'var(--text)', boxSizing: 'border-box' }}
+                  />
+                </div>
+              </>
+            )}
 
           </div>
 

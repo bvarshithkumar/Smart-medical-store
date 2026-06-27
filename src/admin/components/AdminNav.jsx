@@ -6,7 +6,7 @@ import {
   LayoutDashboard, Package, ShoppingCart, FileText, Users,
   Warehouse, Tag, Layout, BarChart3, Settings, ClipboardList,
   ChevronLeft, ChevronRight, LogOut, Bell, Search, Moon, Sun,
-  Stethoscope, Calendar, MessageSquare
+  Stethoscope, Calendar, MessageSquare, Menu, X
 } from 'lucide-react';
 
 const NAV_ITEMS = [
@@ -34,11 +34,17 @@ const NAV_ITEMS = [
   ]},
 ];
 
-export const Sidebar = ({ collapsed, onToggle }) => {
+export const Sidebar = ({ collapsed, mobileOpen, onCloseMobile }) => {
   const location = useLocation();
   const { adminLogout, adminUser } = useAdminAuth();
   const { metrics } = useAdmin();
   const navigate = useNavigate();
+
+  React.useEffect(() => {
+    if (onCloseMobile) {
+      onCloseMobile();
+    }
+  }, [location.pathname]);
 
   const isActive = (path) => path === '/admin'
     ? location.pathname === '/admin'
@@ -51,7 +57,7 @@ export const Sidebar = ({ collapsed, onToggle }) => {
   };
 
   return (
-    <aside className={`admin-sidebar${collapsed ? ' collapsed' : ''}`}>
+    <aside className={`admin-sidebar${collapsed ? ' collapsed' : ''}${mobileOpen ? ' mobile-open' : ''}`}>
       <Link to="/admin" className="sidebar-logo">
         <div className="sidebar-logo-icon">💊</div>
         <div className="sidebar-logo-text">
@@ -100,14 +106,19 @@ export const Sidebar = ({ collapsed, onToggle }) => {
   );
 };
 
-export const AdminHeader = ({ collapsed, onToggle, onNotifToggle }) => {
+export const AdminHeader = ({ collapsed, mobileOpen, onToggle, onNotifToggle }) => {
   const { unreadCount, theme, toggleTheme } = useAdmin();
   const [search, setSearch] = useState('');
 
   return (
     <header className={`admin-header${collapsed ? ' sidebar-collapsed' : ''}`}>
       <button className="header-toggle-btn" onClick={onToggle} title="Toggle sidebar">
-        {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
+        <span className="desktop-toggle-icon">
+          {collapsed ? <ChevronRight size={16} /> : <ChevronLeft size={16} />}
+        </span>
+        <span className="mobile-toggle-icon">
+          {mobileOpen ? <X size={18} /> : <Menu size={18} />}
+        </span>
       </button>
 
       <div className="header-search">

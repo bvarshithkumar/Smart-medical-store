@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import {
   User,
@@ -6,7 +6,6 @@ import {
   ArrowLeft,
   Menu,
   X,
-  ChevronDown,
   Home as HomeIcon,
   Pill,
   LayoutGrid,
@@ -14,10 +13,13 @@ import {
   FileText,
   Calendar,
   Clock,
-  Search,
   Sun,
   Moon,
-  Bell
+  Bell,
+  MapPin,
+  Smartphone,
+  Phone,
+  LogIn,
 } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
@@ -39,36 +41,23 @@ const SVMSLogo = ({ size = 28 }) => (
     aria-label="SVMS Medical Store Logo"
   >
     <defs>
-      {/* Full cross shape as a clip for the two halves */}
       <clipPath id="crossShape">
-        {/* Vertical bar */}
         <rect x="72" y="10" width="56" height="180" rx="14" />
-        {/* Horizontal bar */}
         <rect x="10" y="72" width="180" height="56" rx="14" />
       </clipPath>
     </defs>
-
-    {/* === Cross body — Blue left half & White right half === */}
     <g clipPath="url(#crossShape)">
-      {/* Blue fill — left side */}
       <rect x="10" y="10" width="100" height="180" fill="#2563EB" />
-      {/* White fill — right side */}
       <rect x="100" y="10" width="100" height="180" fill="#FFFFFF" />
     </g>
-
-    {/* === White S-curve swirl === */}
     <path
-      d="M105 18
-         C105 18, 148 50, 120 90
-         C92 130, 130 158, 115 182"
+      d="M105 18 C105 18, 148 50, 120 90 C92 130, 130 158, 115 182"
       stroke="white"
       strokeWidth="11"
       strokeLinecap="round"
       fill="none"
       opacity="0.95"
     />
-
-    {/* === White leaf at bottom of swirl === */}
     <ellipse
       cx="110"
       cy="172"
@@ -78,7 +67,6 @@ const SVMSLogo = ({ size = 28 }) => (
       opacity="0.95"
       transform="rotate(-35 110 172)"
     />
-    {/* leaf vein */}
     <path
       d="M104 177 Q111 170 118 167"
       stroke="#2563EB"
@@ -90,22 +78,20 @@ const SVMSLogo = ({ size = 28 }) => (
   </svg>
 );
 
-
 const Navbar = ({ showSearch = true, searchQuery, onSearchChange }) => {
   const { getCartCount, showToast, cartBump } = useCart();
-  const { isAuthenticated, user, openLogin, openRegister } = useAuth();
-  const { pickupDate, pickupTime, setIsSchedulerOpen } = useReservation();
+  const { isAuthenticated, user, openLogin } = useAuth();
+  const { setIsSchedulerOpen } = useReservation();
   const { notifications, unreadCount, markAsRead, markAllAsRead } = useNotifications();
   const { requireOnline } = useOfflineContext();
   const navigate = useNavigate();
   const location = useLocation();
 
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const [isOverflowOpen, setIsOverflowOpen] = useState(false);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-  const overflowRef = useRef(null);
   const notifRef = useRef(null);
+  const drawerRef = useRef(null);
 
   const [theme, setTheme] = useState(() => {
     const saved = localStorage.getItem('svms-theme');
@@ -117,39 +103,58 @@ const Navbar = ({ showSearch = true, searchQuery, onSearchChange }) => {
     localStorage.setItem('svms-theme', theme);
   }, [theme]);
 
-  const toggleTheme = () => {
-    setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
-  };
+  const toggleTheme = () => setTheme((prev) => (prev === 'dark' ? 'light' : 'dark'));
 
   const isSubPage = location.pathname !== '/' && location.pathname !== '/home';
 
+  /* ── Close drawer on route change ── */
+  useEffect(() => {
+    setIsDrawerOpen(false);
+    setIsNotifOpen(false);
+  }, [location.pathname]);
+
+  /* ── Outside click handler ── */
   useEffect(() => {
     const handleOutsideClick = (e) => {
-      if (overflowRef.current && !overflowRef.current.contains(e.target)) {
-        setIsOverflowOpen(false);
-      }
       if (notifRef.current && !notifRef.current.contains(e.target)) {
         setIsNotifOpen(false);
+      }
+      if (
+        drawerRef.current &&
+        !drawerRef.current.contains(e.target) &&
+        !e.target.closest('.nb-hamburger')
+      ) {
+        setIsDrawerOpen(false);
       }
     };
     document.addEventListener('mousedown', handleOutsideClick);
     return () => document.removeEventListener('mousedown', handleOutsideClick);
   }, []);
 
+  /* ── Scroll handler ── */
   useEffect(() => {
     const onScroll = () => setIsScrolled(window.scrollY > 20);
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
+  /* ── Lock body scroll when drawer open ── */
+  useEffect(() => {
+    document.body.style.overflow = isDrawerOpen ? 'hidden' : '';
+    return () => { document.body.style.overflow = ''; };
+  }, [isDrawerOpen]);
+
   const handleProfileClick = () => {
     if (!requireOnline(ONLINE_REQUIRED_FEATURES.LOGIN)) return;
     if (isAuthenticated) {
       navigate('/profile');
     } else {
-      const fromPath = (location.pathname === '/login' || location.pathname === '/register' || location.pathname === '/forgot-password')
-        ? '/'
-        : location.pathname + location.search;
+      const fromPath =
+        location.pathname === '/login' ||
+        location.pathname === '/register' ||
+        location.pathname === '/forgot-password'
+          ? '/'
+          : location.pathname + location.search;
       openLogin(fromPath);
     }
   };
@@ -163,30 +168,43 @@ const Navbar = ({ showSearch = true, searchQuery, onSearchChange }) => {
     }
   };
 
-  const handleStoreLocatorClick = (e) => {
+  const handleStoreLocatorClick = useCallback((e) => {
     e.preventDefault();
     setIsDrawerOpen(false);
-    setIsOverflowOpen(false);
-    window.open('https://www.google.com/maps/place/SRI+VENKATESWARA+MEDICAL+AND+GENERAL+STORE/@17.4017429,78.4965845,21z/data=!4m6!3m5!1s0x3bcb99c0f2c51047:0x9c8b2ded81a7a43f!8m2!3d17.4017404!4d78.4966437!16s%2Fg%2F1pp2x7qrp', '_blank', 'noopener,noreferrer');
-  };
+    window.open(
+      'https://www.google.com/maps/place/SRI+VENKATESWARA+MEDICAL+AND+GENERAL+STORE/@17.4017429,78.4965845,21z/data=!4m6!3m5!1s0x3bcb99c0f2c51047:0x9c8b2ded81a7a43f!8m2!3d17.4017404!4d78.4966437!16s%2Fg%2F1pp2x7qrp',
+      '_blank',
+      'noopener,noreferrer'
+    );
+  }, []);
 
-  const navItems = [
-    { label: 'Home', target: 'hero-carousel', isAnchor: true },
-    { label: 'Medicines', target: 'popular-medicines', isAnchor: true },
-    { label: 'Categories', target: 'categories', isAnchor: true },
-    { label: 'Offers', target: 'offers', isAnchor: true },
-    { label: 'Upload Prescription', target: 'upload-rx', isAnchor: true },
-    { label: 'Schedule Pickup', path: '/pickup' },
-    { label: 'Track Order', path: '/tracking' },
-    ...(isAuthenticated ? [{ label: 'My Prescriptions', path: '/my-prescriptions' }] : []),
-    isAuthenticated
-      ? { label: 'Profile', path: '/profile' }
-      : { label: 'Login', path: '/login' }
+  const handleDownloadApp = useCallback((e) => {
+    e.preventDefault();
+    setIsDrawerOpen(false);
+    if (typeof window.__svmsTriggerInstall === 'function') {
+      window.__svmsTriggerInstall();
+    } else {
+      showToast('Opening app installation...', 'OK');
+    }
+  }, [showToast]);
+
+  /* ── Nav items (homepage sections + sub-pages) ── */
+  const mainNavItems = [
+    { label: 'Home', target: 'hero-carousel', isAnchor: true, icon: <HomeIcon size={18} /> },
+    { label: 'Medicines', target: 'popular-medicines', isAnchor: true, icon: <Pill size={18} /> },
+    { label: 'Categories', target: 'categories', isAnchor: true, icon: <LayoutGrid size={18} /> },
+    { label: 'Offers', target: 'offers', isAnchor: true, icon: <Tag size={18} /> },
+    { label: 'Upload Prescription', target: 'upload-rx', isAnchor: true, icon: <FileText size={18} /> },
+    { label: 'Schedule Pickup', path: '/pickup', icon: <Calendar size={18} /> },
+    { label: 'Track Order', path: '/tracking', icon: <Clock size={18} /> },
+    ...(isAuthenticated
+      ? [{ label: 'My Prescriptions', path: '/my-prescriptions', icon: <FileText size={18} /> }]
+      : []),
   ];
 
-  const handleNavClick = (item) => {
+  const handleNavClick = useCallback((item) => {
     setIsDrawerOpen(false);
-    setIsOverflowOpen(false);
+    setIsNotifOpen(false);
 
     if (item.isAnchor) {
       if (location.pathname !== '/' && location.pathname !== '/home') {
@@ -210,342 +228,429 @@ const Navbar = ({ showSearch = true, searchQuery, onSearchChange }) => {
         if (!requireOnline(ONLINE_REQUIRED_FEATURES.LOGIN)) return;
       }
       if (item.path === '/login') {
-        const fromPath = (location.pathname === '/login' || location.pathname === '/register' || location.pathname === '/forgot-password')
-          ? '/'
-          : location.pathname + location.search;
+        const fromPath =
+          location.pathname === '/login' ||
+          location.pathname === '/register' ||
+          location.pathname === '/forgot-password'
+            ? '/'
+            : location.pathname + location.search;
         openLogin(fromPath);
       } else {
         navigate(item.path);
       }
     }
-  };
+  }, [location, navigate, requireOnline, openLogin]);
 
-  /* ── Brand logo + name block ─────────────────────────────── */
+  /* ── Brand logo + name block ── */
   const BrandBlock = ({ compact = false }) => (
     <Link
       to="/"
-      className="svms-brand"
+      className="nb-brand"
       onClick={() => handleNavClick({ label: 'Home', target: 'hero-carousel', isAnchor: true })}
       aria-label="Sri Venkateshwara Medical & General Stores – Home"
     >
-      <div className={`svms-logo-badge${compact ? ' compact' : ''}`}>
+      <div className={`nb-logo-badge${compact ? ' nb-logo-compact' : ''}`}>
         <SVMSLogo size={compact ? 24 : 28} />
       </div>
-      <div className="svms-brand-text">
-        <span className="svms-brand-name">Sri Venkateshwara</span>
-        <span className="svms-brand-sub">Medical &amp; General Stores</span>
+      <div className="nb-brand-text">
+        <span className="nb-brand-name">Sri Venkateshwara</span>
+        <span className="nb-brand-sub">Medical &amp; General Stores</span>
       </div>
     </Link>
   );
 
-  // ── Workflow-aware back navigation (NEVER uses browser history) ──────
-  // Determines back destination from application state, not browser history.
+  /* ── Workflow-aware back navigation ── */
   const getWorkflowBackPath = () => {
     const path = location.pathname;
     const params = new URLSearchParams(location.search);
-
-    // Step 3: Confirmation → Home (never back into booking flow)
     if (path === '/confirmation') return '/';
-
-    // Step 2: Pickup → Quote Review (my-prescriptions)
     if (path === '/pickup') {
       const prescId = params.get('prescription_id');
       return prescId ? `/my-prescriptions?highlight=${prescId}` : '/my-prescriptions';
     }
-
-    // Step 1: My Prescriptions / Quote Review → Home
     if (path === '/my-prescriptions') return '/';
-
-    // Other sub-pages
     if (path === '/reservations') return '/profile';
-
-    // Default: Home
     return '/';
   };
 
+  /* ── Check if nav item is active ── */
+  const isItemActive = (item) =>
+    (item.path && location.pathname === item.path) ||
+    (item.label === 'Home' && location.pathname === '/' && !location.state?.scrollTo) ||
+    (item.isAnchor && location.pathname === '/' && location.state?.scrollTo === item.target);
+
+  /* ── Action icons shared block ── */
+  const ActionIcons = ({ showTheme = true }) => (
+    <div className="nb-actions">
+      {showTheme && (
+        <button
+          className="nb-icon-btn"
+          onClick={toggleTheme}
+          aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+          id="theme-toggle-btn"
+        >
+          {theme === 'dark' ? <Sun size={19} /> : <Moon size={19} />}
+        </button>
+      )}
+
+      {isAuthenticated && (
+        <div ref={notifRef} className="nb-notif-wrapper">
+          <button
+            className="nb-icon-btn"
+            onClick={() => setIsNotifOpen(!isNotifOpen)}
+            aria-label="Notifications"
+            id="nav-notif-btn"
+          >
+            <Bell size={19} />
+            {unreadCount > 0 && (
+              <span className="nb-badge nb-badge--notif">{unreadCount}</span>
+            )}
+          </button>
+          {isNotifOpen && (
+            <div className="notif-dropdown">
+              <div className="notif-dropdown-header">
+                <h4>Notifications</h4>
+                {unreadCount > 0 && (
+                  <button onClick={markAllAsRead}>Mark all read</button>
+                )}
+              </div>
+              <div className="notif-dropdown-list">
+                {notifications.length === 0 ? (
+                  <div className="notif-empty">No notifications yet</div>
+                ) : (
+                  notifications.map((n) => (
+                    <div
+                      key={n.id}
+                      className={`notif-dropdown-item ${!n.read ? 'unread' : ''}`}
+                      onClick={() => {
+                        markAsRead(n.id);
+                        setIsNotifOpen(false);
+                        if (
+                          n.title.toLowerCase().includes('prescription') ||
+                          n.title.toLowerCase().includes('quote')
+                        ) {
+                          navigate('/my-prescriptions');
+                        } else {
+                          navigate('/reservations');
+                        }
+                      }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <h5 style={{ margin: 0, fontWeight: !n.read ? 800 : 600 }}>{n.title}</h5>
+                        {!n.read && (
+                          <span style={{
+                            width: 8, height: 8, borderRadius: '50%',
+                            background: 'var(--cyan, #06b6d4)',
+                            boxShadow: '0 0 8px #06b6d4',
+                            display: 'inline-block', flexShrink: 0
+                          }} />
+                        )}
+                      </div>
+                      <p style={{ margin: '4px 0 0 0' }}>{n.message}</p>
+                      <span style={{ fontSize: '10px', color: 'var(--text-muted)', display: 'block', marginTop: '4px' }}>
+                        {new Date(n.created_at).toLocaleString('en-IN')}
+                      </span>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      <button
+        className={`nb-icon-btn nb-cart-btn ${cartBump ? 'cart-bump' : ''}`}
+        onClick={handleCartClick}
+        aria-label="Reservation cart"
+        id="nav-cart-btn"
+      >
+        <ShoppingCart size={19} />
+        {getCartCount() > 0 && (
+          <span className={`nb-badge ${cartBump ? 'cart-badge--bump' : ''}`} id="cart-badge">
+            {getCartCount()}
+          </span>
+        )}
+      </button>
+
+      <button
+        className="nb-icon-btn nb-profile-btn"
+        onClick={handleProfileClick}
+        aria-label={isAuthenticated ? 'My profile' : 'Login'}
+        id="nav-profile-btn"
+      >
+        {isAuthenticated ? (
+          <div className="nav-profile-avatar">
+            <span className="avatar-initials">
+              {user?.avatar || user?.name?.charAt(0)?.toUpperCase() || 'U'}
+            </span>
+            <span className="avatar-status-dot" />
+          </div>
+        ) : (
+          <User size={20} />
+        )}
+      </button>
+    </div>
+  );
+
   return (
     <>
-      {/* Premium Announcement Bar */}
-      <div className="announcement-bar">
-        <div className="announcement-left">
-          <span className="ann-item">🚚 Free Delivery Above ₹499</span>
-          <span className="ann-separator">|</span>
-          <span className="ann-item">🛡️ 100% Genuine Medicines</span>
-          <span className="ann-separator">|</span>
-          <span className="ann-item">📞 Support: +91 98765 43210</span>
-        </div>
-        <div className="announcement-right">
-          <a href="#locator" className="ann-link" onClick={handleStoreLocatorClick} style={{ display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
-            📍 Store Locator
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="10" height="10" style={{ opacity: 0.85 }}>
-              <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
-              <polyline points="15 3 21 3 21 9" />
-              <line x1="10" y1="14" x2="21" y2="3" />
-            </svg>
+      {/* ═══════════════════════════════════════════
+          TOP ANNOUNCEMENT BAR
+          ═══════════════════════════════════════════ */}
+      <div className="nb-ann-bar" role="complementary" aria-label="Store information">
+        {/* LEFT — always visible on tablet+, hidden entirely on mobile */}
+        <div className="nb-ann-left">
+          <span className="nb-ann-item nb-ann-hide-mobile">🛡️ 100% Genuine Medicines</span>
+          <span className="nb-ann-sep nb-ann-hide-mobile">|</span>
+          <a href="tel:+919440025408" className="nb-ann-item nb-ann-phone">
+            📞 Support: +91 9440025408
           </a>
-          <a href="#download" className="ann-link" id="ann-download-app" onClick={(e) => { e.preventDefault(); if (typeof window.__svmsTriggerInstall === 'function') { window.__svmsTriggerInstall(); } else { showToast('Opening app installation...', 'OK'); } }}>📱 Download App</a>
+        </div>
+
+        {/* RIGHT — Store Locator & Download App (hidden on mobile, shown in drawer instead) */}
+        <div className="nb-ann-right">
+          <a
+            href="#locator"
+            className="nb-ann-link nb-ann-hide-mobile"
+            onClick={handleStoreLocatorClick}
+          >
+            📍 Store Locator
+          </a>
+          <a
+            href="#download"
+            className="nb-ann-link nb-ann-hide-mobile"
+            id="ann-download-app"
+            onClick={handleDownloadApp}
+          >
+            📱 Download App
+          </a>
         </div>
       </div>
 
-      <header className={`navbar${isScrolled ? ' scrolled' : ''}`} id="main-navbar">
-        {/* ── Top row ──────────────────────────────────────── */}
-        <div className="nav-top-row">
+      {/* ═══════════════════════════════════════════
+          MAIN NAVBAR
+          ═══════════════════════════════════════════ */}
+      <header
+        className={`nb-header${isScrolled ? ' nb-scrolled' : ''}`}
+        id="main-navbar"
+      >
+        <div className="nb-inner">
 
-          {/* Hamburger (Mobile) */}
-          {!isSubPage && (
-            <button
-              className="hamburger-btn"
-              onClick={() => setIsDrawerOpen(!isDrawerOpen)}
-              aria-label="Open menu"
-            >
-              <Menu size={24} />
-            </button>
-          )}
-
-          {/* Sub-page header OR brand block */}
+          {/* ── SUB-PAGE: back button + page title ── */}
           {isSubPage ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <button className="icon-btn" onClick={() => navigate(getWorkflowBackPath())} aria-label="Go back">
+            <div className="nb-subpage-row">
+              <button
+                className="nb-icon-btn nb-back-btn"
+                onClick={() => navigate(getWorkflowBackPath())}
+                aria-label="Go back"
+              >
                 <ArrowLeft size={20} />
               </button>
-              {location.pathname === '/cart' && <h1 className="page-title" style={{ fontSize: '18px', fontWeight: 800, margin: 0 }}>Reservation Cart</h1>}
-              {location.pathname === '/pickup' && <h1 className="page-title" style={{ fontSize: '18px', fontWeight: 800, margin: 0 }}>Schedule Pickup</h1>}
-              {location.pathname.startsWith('/medicine/') && <span className="detail-header-title" style={{ fontSize: '16px', fontWeight: 700 }}>Medicine Details</span>}
-              {location.pathname === '/confirmation' && <span className="detail-header-title" style={{ fontSize: '16px', fontWeight: 700 }}>Reservation Confirmed</span>}
-              {location.pathname === '/tracking' && <span className="detail-header-title" style={{ fontSize: '16px', fontWeight: 700 }}>Track Pickup</span>}
-              {location.pathname === '/profile' && <span className="detail-header-title" style={{ fontSize: '16px', fontWeight: 700 }}>My Profile</span>}
-              {location.pathname === '/login' && <span className="detail-header-title" style={{ fontSize: '16px', fontWeight: 700 }}>Login</span>}
+              <div className="nb-subpage-title">
+                {location.pathname === '/cart' && <h1>Reservation Cart</h1>}
+                {location.pathname === '/pickup' && <h1>Schedule Pickup</h1>}
+                {location.pathname.startsWith('/medicine/') && <h1>Medicine Details</h1>}
+                {location.pathname === '/confirmation' && <h1>Reservation Confirmed</h1>}
+                {location.pathname === '/tracking' && <h1>Track Pickup</h1>}
+                {location.pathname === '/profile' && <h1>My Profile</h1>}
+                {location.pathname === '/login' && <h1>Login</h1>}
+                {location.pathname === '/my-prescriptions' && <h1>My Prescriptions</h1>}
+                {location.pathname === '/reservations' && <h1>My Reservations</h1>}
+              </div>
+              <div style={{ marginLeft: 'auto' }}>
+                <ActionIcons showTheme={false} />
+              </div>
             </div>
           ) : (
-            <BrandBlock />
-          )}
+            <>
+              {/* ══════════════════════════════════════
+                  DESKTOP / LAPTOP ROW  (≥992px)
+                  Logo | Search | Nav Links | Icons
+                  ══════════════════════════════════════ */}
+              <div className="nb-desktop-row">
+                {/* Logo */}
+                <BrandBlock />
 
-          {/* Search Bar (Desktop & Tablet) */}
-          {showSearch && !isSubPage && (
-            <div className="nav-search-bar">
-              <SearchBar query={searchQuery} onChange={onSearchChange} />
-            </div>
-          )}
-
-          {/* Desktop inline nav links */}
-          {!isSubPage && (
-            <nav className="desktop-inline-nav" aria-label="Main navigation">
-              {navItems.map((item, idx) => {
-                const isItemActive =
-                  (item.path && location.pathname === item.path) ||
-                  (item.label === 'Home' && location.pathname === '/' && (!location.state || !location.state.scrollTo)) ||
-                  (item.isAnchor && location.pathname === '/' && location.state?.scrollTo === item.target);
-                return (
-                  <button
-                    key={idx}
-                    className={`nav-link-btn ${isItemActive ? 'active' : ''}`}
-                    onClick={() => handleNavClick(item)}
-                  >
-                    {item.label}
-                  </button>
-                );
-              })}
-            </nav>
-          )}
-
-          {/* Action icons */}
-          <div className="nav-actions">
-            <button
-              className="theme-toggle-btn"
-              onClick={toggleTheme}
-              aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
-              id="theme-toggle-btn"
-            >
-              {theme === 'dark' ? <Sun size={19} /> : <Moon size={19} />}
-            </button>
-            {isAuthenticated && (
-              <div ref={notifRef} style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
-                <button
-                  className="theme-toggle-btn"
-                  onClick={() => setIsNotifOpen(!isNotifOpen)}
-                  aria-label="Notifications"
-                  id="nav-notif-btn"
-                  style={{ position: 'relative' }}
-                >
-                  <Bell size={19} />
-                  {unreadCount > 0 && (
-                    <span className="cart-badge" style={{ top: '-2px', right: '-2px' }}>{unreadCount}</span>
-                  )}
-                </button>
-                {isNotifOpen && (
-                  <div className="notif-dropdown">
-                    <div className="notif-dropdown-header">
-                      <h4>Notifications</h4>
-                      {unreadCount > 0 && (
-                        <button onClick={markAllAsRead}>Mark all read</button>
-                      )}
-                    </div>
-                    <div className="notif-dropdown-list">
-                      {notifications.length === 0 ? (
-                        <div className="notif-empty">No notifications yet</div>
-                      ) : (
-                        notifications.map(n => (
-                          <div
-                            key={n.id}
-                            className={`notif-dropdown-item ${!n.read ? 'unread' : ''}`}
-                            onClick={() => {
-                              markAsRead(n.id);
-                              setIsNotifOpen(false);
-                              if (
-                                n.title.toLowerCase().includes('prescription') ||
-                                n.title.toLowerCase().includes('quote')
-                              ) {
-                                navigate('/my-prescriptions');
-                              } else {
-                                navigate('/reservations');
-                              }
-                            }}
-                            style={{ position: 'relative' }}
-                          >
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                              <h5 style={{ margin: 0, fontWeight: !n.read ? 800 : 600 }}>{n.title}</h5>
-                              {!n.read && (
-                                <span style={{
-                                  width: 8,
-                                  height: 8,
-                                  borderRadius: '50%',
-                                  background: 'var(--cyan, #06b6d4)',
-                                  boxShadow: '0 0 8px #06b6d4',
-                                  display: 'inline-block'
-                                }} />
-                              )}
-                            </div>
-                            <p style={{ margin: '4px 0 0 0' }}>{n.message}</p>
-                            <span style={{ fontSize: '10px', color: 'var(--text-muted)', display: 'block', marginTop: '4px' }}>
-                              {new Date(n.created_at).toLocaleString('en-IN')}
-                            </span>
-                          </div>
-                        ))
-                      )}
-                    </div>
+                {/* Search — flexible, grows between logo and nav */}
+                {showSearch && (
+                  <div className="nb-search-wrap nb-search-desktop">
+                    <SearchBar query={searchQuery} onChange={onSearchChange} />
                   </div>
                 )}
-              </div>
-            )}
-            <button className={`nav-cart-btn ${cartBump ? 'cart-bump' : ''}`} onClick={handleCartClick} aria-label="Reservation cart" id="nav-cart-btn">
-              <ShoppingCart size={19} />
-              {getCartCount() > 0 && (
-                <span className={`cart-badge ${cartBump ? 'cart-badge--bump' : ''}`} id="cart-badge">{getCartCount()}</span>
-              )}
-            </button>
-            <button className="nav-profile-btn profile-icon-desktop" onClick={handleProfileClick} aria-label={isAuthenticated ? 'My profile' : 'Login'} id="nav-profile-btn">
-              {isAuthenticated ? (
-                <div className="nav-profile-avatar">
-                  <span className="avatar-initials">{user?.avatar || user?.name?.charAt(0)?.toUpperCase() || 'U'}</span>
-                  <span className="avatar-status-dot"></span>
-                </div>
-              ) : (
-                <User size={20} />
-              )}
-            </button>
-          </div>
-        </div>
 
-        {/* Tablet simplified nav bar */}
-        {!isSubPage && (
-          <nav className="tablet-nav-bar" aria-label="Tablet navigation">
-            {navItems.slice(0, 4).map((item, idx) => (
-              <button
-                key={idx}
-                className="nav-link-btn"
-                onClick={() => handleNavClick(item)}
-              >
-                {item.label}
-              </button>
-            ))}
-            <div className="overflow-menu-container" ref={overflowRef}>
-              <button
-                className="nav-link-btn overflow-trigger"
-                onClick={() => setIsOverflowOpen(!isOverflowOpen)}
-              >
-                More <ChevronDown size={14} style={{ marginLeft: '2px', display: 'inline' }} />
-              </button>
-              {isOverflowOpen && (
-                <div className="overflow-dropdown">
-                  {navItems.slice(4).map((item, idx) => (
+                {/* Nav links */}
+                <nav className="nb-desktop-nav" aria-label="Main navigation">
+                  {mainNavItems.map((item, idx) => (
                     <button
                       key={idx}
-                      className="dropdown-item-btn"
+                      className={`nb-nav-btn${isItemActive(item) ? ' active' : ''}`}
                       onClick={() => handleNavClick(item)}
                     >
                       {item.label}
                     </button>
                   ))}
+                </nav>
+
+                {/* Action icons */}
+                <ActionIcons />
+              </div>
+
+              {/* ══════════════════════════════════════
+                  TABLET ROW  (768–991px)
+                  Logo | Search | Hamburger | Icons
+                  ══════════════════════════════════════ */}
+              <div className="nb-tablet-row">
+                {/* Logo */}
+                <BrandBlock />
+
+                {/* Search — fills available space */}
+                {showSearch && (
+                  <div className="nb-search-wrap nb-search-tablet">
+                    <SearchBar query={searchQuery} onChange={onSearchChange} />
+                  </div>
+                )}
+
+                {/* Icons + hamburger */}
+                <div className="nb-tablet-actions">
+                  <ActionIcons />
+                  <button
+                    className="nb-hamburger nb-icon-btn"
+                    onClick={() => setIsDrawerOpen(!isDrawerOpen)}
+                    aria-label={isDrawerOpen ? 'Close menu' : 'Open menu'}
+                    aria-expanded={isDrawerOpen}
+                  >
+                    {isDrawerOpen ? <X size={22} /> : <Menu size={22} />}
+                  </button>
+                </div>
+              </div>
+
+              {/* ══════════════════════════════════════
+                  MOBILE TOP ROW  (<768px)
+                  Logo | [Notif | Cart | Profile | Hamburger]
+                  ══════════════════════════════════════ */}
+              <div className="nb-mobile-row">
+                <BrandBlock compact />
+                <div className="nb-mobile-actions">
+                  <ActionIcons />
+                  <button
+                    className="nb-hamburger nb-icon-btn"
+                    onClick={() => setIsDrawerOpen(!isDrawerOpen)}
+                    aria-label={isDrawerOpen ? 'Close menu' : 'Open menu'}
+                    aria-expanded={isDrawerOpen}
+                  >
+                    {isDrawerOpen ? <X size={22} /> : <Menu size={22} />}
+                  </button>
+                </div>
+              </div>
+
+              {/* ══════════════════════════════════════
+                  MOBILE SEARCH ROW  (<768px)
+                  Full-width search bar below top row
+                  ══════════════════════════════════════ */}
+              {showSearch && (
+                <div className="nb-mobile-search-row">
+                  <SearchBar query={searchQuery} onChange={onSearchChange} />
                 </div>
               )}
-            </div>
-          </nav>
-        )}
-
-        {/* Mobile search bar */}
-        {showSearch && !isSubPage && (
-          <div className="mobile-search-bar-row">
-            <SearchBar query={searchQuery} onChange={onSearchChange} />
-          </div>
-        )}
+            </>
+          )}
+        </div>
       </header>
 
-      {/* Drawer backdrop */}
-      {isDrawerOpen && !isSubPage && (
-        <div className="drawer-backdrop" onClick={() => setIsDrawerOpen(false)} />
-      )}
+      {/* ═══════════════════════════════════════════
+          DRAWER BACKDROP
+          ═══════════════════════════════════════════ */}
+      <div
+        className={`nb-drawer-backdrop${isDrawerOpen ? ' nb-drawer-backdrop--open' : ''}`}
+        onClick={() => setIsDrawerOpen(false)}
+        aria-hidden="true"
+      />
 
-      {/* Mobile drawer */}
-      {!isSubPage && (
-        <div className={`drawer-aside ${isDrawerOpen ? 'open' : ''}`} role="dialog" aria-modal="true" aria-label="Navigation menu">
-          <div className="drawer-header">
-            <BrandBlock compact />
-            <button className="close-btn" onClick={() => setIsDrawerOpen(false)} aria-label="Close menu">
-              <X size={22} />
-            </button>
-          </div>
-
-          {/* Drawer tagline strip */}
-          <div className="drawer-tagline">Your Health, Our Priority</div>
-
-          <div className="drawer-content">
-            <div className="drawer-nav-list">
-              {navItems.map((item, idx) => (
-                <button
-                  key={idx}
-                  className="drawer-nav-item"
-                  onClick={() => handleNavClick(item)}
-                >
-                  <span className="drawer-nav-icon">
-                    {item.label === 'Home' && <HomeIcon size={18} />}
-                    {item.label === 'Medicines' && <Pill size={18} />}
-                    {item.label === 'Categories' && <LayoutGrid size={18} />}
-                    {item.label === 'Offers' && <Tag size={18} />}
-                    {item.label === 'Upload Prescription' && <FileText size={18} />}
-                    {item.label === 'Schedule Pickup' && <Calendar size={18} />}
-                    {item.label === 'Track Order' && <Clock size={18} />}
-                    {item.label === 'My Reservations' && <Clock size={18} />}
-                    {item.label === 'My Prescriptions' && <FileText size={18} />}
-                    {item.label === 'Profile' && <User size={18} />}
-                    {item.label === 'Login' && <User size={18} />}
-                  </span>
-                  <span className="drawer-nav-label">{item.label}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Drawer footer */}
-          <div className="drawer-footer">
-            <div className="drawer-footer-logo">
-              <div className="svms-logo-badge compact">
-                <SVMSLogo size={20} />
-              </div>
-              <span>Sri Venkateshwara Medical &amp; General Stores</span>
-            </div>
-          </div>
+      {/* ═══════════════════════════════════════════
+          NAVIGATION DRAWER (left slide-in)
+          ═══════════════════════════════════════════ */}
+      <aside
+        ref={drawerRef}
+        className={`nb-drawer${isDrawerOpen ? ' nb-drawer--open' : ''}`}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Navigation menu"
+      >
+        {/* Drawer header */}
+        <div className="nb-drawer-head">
+          <BrandBlock compact />
+          <button
+            className="nb-icon-btn"
+            onClick={() => setIsDrawerOpen(false)}
+            aria-label="Close menu"
+          >
+            <X size={22} />
+          </button>
         </div>
-      )}
+
+        {/* Drawer tagline */}
+        <div className="nb-drawer-tagline">Your Health, Our Priority</div>
+
+        {/* Drawer nav items */}
+        <nav className="nb-drawer-nav" aria-label="Drawer navigation">
+          {mainNavItems.map((item, idx) => (
+            <button
+              key={idx}
+              className={`nb-drawer-item${isItemActive(item) ? ' nb-drawer-item--active' : ''}`}
+              onClick={() => handleNavClick(item)}
+            >
+              <span className="nb-drawer-item-icon">{item.icon}</span>
+              <span className="nb-drawer-item-label">{item.label}</span>
+            </button>
+          ))}
+
+          {/* Auth item */}
+          <button
+            className="nb-drawer-item"
+            onClick={() => {
+              setIsDrawerOpen(false);
+              if (isAuthenticated) {
+                navigate('/profile');
+              } else {
+                openLogin(location.pathname + location.search);
+              }
+            }}
+          >
+            <span className="nb-drawer-item-icon">
+              <User size={18} />
+            </span>
+            <span className="nb-drawer-item-label">
+              {isAuthenticated ? 'My Profile' : 'Login / Register'}
+            </span>
+          </button>
+        </nav>
+
+        {/* Drawer divider */}
+        <div className="nb-drawer-divider" />
+
+        {/* Drawer utility links (mobile-only extras from announcement bar) */}
+        <div className="nb-drawer-utils">
+          <button className="nb-drawer-util-item" onClick={handleStoreLocatorClick}>
+            <MapPin size={16} />
+            <span>Store Locator</span>
+          </button>
+          <button className="nb-drawer-util-item" onClick={handleDownloadApp}>
+            <Smartphone size={16} />
+            <span>Download App</span>
+          </button>
+          <a href="tel:+919440025408" className="nb-drawer-util-item">
+            <Phone size={16} />
+            <span>+91 9440025408</span>
+          </a>
+        </div>
+
+        {/* Drawer footer */}
+        <div className="nb-drawer-foot">
+          <SVMSLogo size={20} />
+          <span>Sri Venkateshwara Medical &amp; General Stores</span>
+        </div>
+      </aside>
     </>
   );
 };

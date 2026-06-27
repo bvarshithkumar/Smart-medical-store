@@ -1232,23 +1232,134 @@
 .admin-root ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
 .admin-root ::-webkit-scrollbar-thumb:hover { background: var(--border-bright); }
 
-/* ── Responsive ───────────────────────────────────────────────── */
-@media (max-width: 768px) {
-  .admin-sidebar { transform: translateX(-100%); }
-  .admin-sidebar.mobile-open { transform: translateX(0); }
-  .admin-main { margin-left: 0 !important; }
-  .admin-header { left: 0 !important; }
-  .rx-layout { grid-template-columns: 1fr; }
-  .settings-grid { grid-template-columns: 1fr; }
-  .form-row-2, .form-row-3 { grid-template-columns: 1fr; }
-  .admin-login-left { display: none; }
-  .admin-login-right { width: 100%; }
-  .product-grid { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
-  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+/* ── Toggle Icons (Desktop vs Mobile Headers) ───────────────────── */
+.desktop-toggle-icon {
+  display: inline-flex !important;
 }
+.mobile-toggle-icon {
+  display: none !important;
+}
+
+/* ── Responsive Overrides & Mobile Drawer ─────────────────────── */
+@media (max-width: 768px) {
+  /* Toggle visibility of icons */
+  .desktop-toggle-icon {
+    display: none !important;
+  }
+  .mobile-toggle-icon {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Make table wrappers scrollable horizontally */
+  .table-card {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+  .admin-table {
+    min-width: 600px !important; /* Ensure data headers don't squish too much on narrow views */
+  }
+
+  /* Make tab bars swipeable horizontally instead of wrapping or squishing */
+  .tab-bar {
+    display: flex !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+    white-space: nowrap !important;
+    padding-bottom: 8px !important;
+    scrollbar-width: none !important; /* Hide scrollbars for neat look */
+  }
+  .tab-bar::-webkit-scrollbar {
+    display: none !important;
+  }
+  .tab-btn {
+    flex-shrink: 0 !important;
+  }
+
+  /* Sidebar drawer transitions on mobile */
+  .admin-sidebar {
+    transform: translateX(-100%) !important;
+    width: 280px !important;
+    box-shadow: 20px 0 40px rgba(0,0,0,0.3) !important;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  }
+  .admin-sidebar.mobile-open {
+    transform: translateX(0) !important;
+  }
+
+  /* Force content layout margins to stretch full-screen */
+  .admin-main {
+    margin-left: 0 !important;
+  }
+  .admin-header {
+    left: 0 !important;
+    padding: 0 16px !important;
+  }
+
+  /* Toolbar items alignment stack */
+  .table-toolbar {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 12px !important;
+    padding: 16px !important;
+  }
+  .table-actions {
+    margin-left: 0 !important;
+    width: 100% !important;
+    justify-content: flex-start !important;
+    gap: 8px !important;
+  }
+
+  /* Layout grids stacking */
+  .rx-layout {
+    grid-template-columns: 1fr !important;
+  }
+  .settings-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .form-row-2, .form-row-3, .grid-2, .grid-3 {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Login page alignment */
+  .admin-login-left {
+    display: none !important;
+  }
+  .admin-login-right {
+    width: 100% !important;
+  }
+
+  /* Grids and Cards */
+  .product-grid {
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)) !important;
+  }
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+  .cms-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Admin Header Search field max-width control */
+  .header-search {
+    max-width: 160px !important;
+  }
+  .header-profile-info {
+    display: none !important; /* Hide admin texts in header action bar on mobile */
+  }
+}
+
 @media (max-width: 480px) {
-  .stats-grid { grid-template-columns: 1fr; }
-  .admin-content { padding: 16px; }
+  .stats-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .admin-content {
+    padding: 16px !important;
+  }
+  .header-search {
+    display: none !important; /* Hide search bar in header on small mobile to make space for actions */
+  }
 }
 
 /* ── Utility ──────────────────────────────────────────────────── */

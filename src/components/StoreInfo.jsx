@@ -1,24 +1,34 @@
 import React, { useState } from 'react';
 
-const StoreInfo = () => {
+const StoreInfo = ({ config }) => {
   const [isInteractive, setIsInteractive] = useState(false);
 
-  const officialMapsUrl = 'https://www.google.com/maps/place/SRI+VENKATESWARA+MEDICAL+AND+GENERAL+STORE/@17.4017429,78.4965845,21z/data=!4m6!3m5!1s0x3bcb99c0f2c51047:0x9c8b2ded81a7a43f!8m2!3d17.4017404!4d78.4966437!16s%2Fg%2F1pp2x7qrp';
+  // Extract config fields from published_config, draft_config or config directly
+  const settings = config?.published_config || config?.draft_config || config || {};
+
+  // Custom configuration fields with fallbacks to default values
+  const storeName = settings.store_name || 'Sri Venkateswara Medical and General Store';
+  const address = settings.address || '41/E, Bagh Lingampally Rd, Chikkadpally, New Nallakunta, Hyderabad, Telangana 500020';
+  const phone = settings.phone || '099497 99719';
+  const hours = settings.hours || '9:00 AM - 10:00 PM (Open All Days)';
+  const whatsapp = settings.whatsapp || '+91 99497 99719';
+  const email = settings.email || 'support@svmspharmacy.com';
+  const emergency = settings.emergency || '+91 40 2345 6789 / +91 99497 99719';
+  const officialMapsUrl = settings.map_url || 'https://www.google.com/maps/place/SRI+VENKATESWARA+MEDICAL+AND+GENERAL+STORE/@17.4017429,78.4965845,21z/data=!4m6!3m5!1s0x3bcb99c0f2c51047:0x9c8b2ded81a7a43f!8m2!3d17.4017404!4d78.4966437!16s%2Fg%2F1pp2x7qrp';
+  const mapEmbedUrl = settings.map_embed_url || 'https://maps.google.com/maps?q=SRI%20VENKATESWARA%20MEDICAL%20AND%20GENERAL%20STORE%20Chikkadpally%20Hyderabad&t=&z=15&ie=UTF8&iwloc=&output=embed';
+  const storeImage = settings.store_image || '/images/store/storefront.png';
 
   const handleDirectionsClick = () => {
     const isAndroid = /android/i.test(navigator.userAgent);
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
     const destCoords = "17.4017404,78.4966437";
-    const destName = encodeURIComponent("SRI VENKATESWARA MEDICAL AND GENERAL STORE");
+    const destName = encodeURIComponent(storeName);
     
     if (isIOS) {
-      // iOS maps protocol launches native Apple Maps
       window.open(`maps://?daddr=${destCoords}&q=${destName}`, '_blank');
     } else if (isAndroid) {
-      // Android maps intent opens directly in Google Maps app
       window.open(`geo:0,0?q=${destCoords}(${destName})`, '_blank');
     } else {
-      // Web fallback directions
       window.open(`https://www.google.com/maps/dir/?api=1&destination=${destCoords}&destination_place_id=ft:0x3bcb99c0f2c51047:0x9c8b2ded81a7a43f`, '_blank', 'noopener,noreferrer');
     }
   };
@@ -29,11 +39,13 @@ const StoreInfo = () => {
   };
 
   const handleWhatsAppClick = () => {
-    window.open('https://wa.me/919949799719?text=Hi%20SVMS%20Pharmacist,%20I%20have%20a%20prescription/medicine%20inquiry.', '_blank');
+    const cleanNum = whatsapp.replace(/[^0-9]/g, '');
+    window.open(`https://wa.me/${cleanNum}?text=Hi%20SVMS%20Pharmacist,%20I%20have%20a%20prescription/medicine%20inquiry.`, '_blank');
   };
 
   const handleCallClick = () => {
-    window.open('tel:09949799719');
+    const cleanNum = phone.replace(/[^0-9]/g, '');
+    window.open(`tel:${cleanNum}`);
   };
 
   return (
@@ -45,7 +57,7 @@ const StoreInfo = () => {
       </div>
       <div className="store-info-grid">
         
-        {/* Left Side: 30% Width Details Card */}
+        {/* Left Side: Details Card */}
         <div className="store-details-card">
           
           <div className="store-verified-pill">
@@ -55,7 +67,7 @@ const StoreInfo = () => {
             <span>OPEN & VERIFIED PHARMACY</span>
           </div>
 
-          <h3 className="store-sub-title">Sri Venkateswara Medical and General Store</h3>
+          <h3 className="store-sub-title">{storeName}</h3>
           <p className="store-trust-tags">Certified &bull; Licensed &bull; Trusted by Thousands</p>
 
           <div className="store-contact-rows">
@@ -69,7 +81,7 @@ const StoreInfo = () => {
               </div>
               <div className="store-row-content">
                 <span className="store-row-label">STORE ADDRESS</span>
-                <span className="store-row-val">41/E, Bagh Lingampally Rd, Chikkadpally, New Nallakunta, Hyderabad, Telangana 500020</span>
+                <span className="store-row-val">{address}</span>
               </div>
             </div>
 
@@ -82,7 +94,7 @@ const StoreInfo = () => {
               </div>
               <div className="store-row-content">
                 <span className="store-row-label">PHONE NUMBER</span>
-                <span className="store-row-val">099497 99719</span>
+                <span className="store-row-val">{phone}</span>
               </div>
             </div>
 
@@ -96,7 +108,7 @@ const StoreInfo = () => {
               </div>
               <div className="store-row-content">
                 <span className="store-row-label">WORKING HOURS</span>
-                <span className="store-row-val">9:00 AM - 10:00 PM (Open All Days)</span>
+                <span className="store-row-val">{hours}</span>
               </div>
             </div>
 
@@ -109,7 +121,7 @@ const StoreInfo = () => {
               </div>
               <div className="store-row-content">
                 <span className="store-row-label">WHATSAPP CONSULTATION</span>
-                <span className="store-row-val">+91 99497 99719 (Direct prescription upload)</span>
+                <span className="store-row-val">{whatsapp} (Direct prescription upload)</span>
               </div>
             </div>
 
@@ -123,7 +135,7 @@ const StoreInfo = () => {
               </div>
               <div className="store-row-content">
                 <span className="store-row-label">EMAIL SUPPORT</span>
-                <span className="store-row-val">support@svmspharmacy.com</span>
+                <span className="store-row-val">{email}</span>
               </div>
             </div>
 
@@ -138,7 +150,7 @@ const StoreInfo = () => {
               </div>
               <div className="store-row-content">
                 <span className="store-row-label">EMERGENCY HOTLINE (24/7)</span>
-                <span className="store-row-val" style={{ color: 'var(--accent-red)', fontWeight: 700 }}>+91 40 2345 6789 / +91 99497 99719</span>
+                <span className="store-row-val" style={{ color: 'var(--accent-red)', fontWeight: 700 }}>{emergency}</span>
               </div>
             </div>
           </div>
@@ -150,7 +162,7 @@ const StoreInfo = () => {
                 <polygon points="3 11 22 2 13 21 11 13 3 11" />
               </svg>
               Get Directions
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="11" height="11" style={{ opacity: 0.85 }}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" width="10" height="10" style={{ opacity: 0.85 }}>
                 <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6" />
                 <polyline points="15 3 21 3 21 9" />
                 <line x1="10" y1="14" x2="21" y2="3" />
@@ -171,14 +183,14 @@ const StoreInfo = () => {
           </div>
         </div>
 
-        {/* Right Side: 70% Width Showcase Area */}
+        {/* Right Side: Showcase Area */}
         <div className="store-showcase-container">
           <div className="store-image-wrap">
-            <img src="/images/store/storefront.png" alt="Sri Venkateswara Storefront" className="storefront-main-img" />
+            <img src={storeImage} alt="Sri Venkateswara Storefront" className="storefront-main-img" />
             <div className="store-img-overlay" />
           </div>
 
-          {/* Floating Map Card - centered overlay bottom-middle */}
+          {/* Floating Map Card */}
           <div className="store-floating-map-card">
             <div className="store-map-preview-side" style={{ position: 'relative', overflow: 'hidden' }}>
               {isInteractive ? (
@@ -189,7 +201,7 @@ const StoreInfo = () => {
                   style={{ border: 0, display: 'block' }}
                   loading="lazy"
                   allowFullScreen
-                  src="https://maps.google.com/maps?q=SRI%20VENKATESWARA%20MEDICAL%20AND%20GENERAL%20STORE%20Chikkadpally%20Hyderabad&t=&z=15&ie=UTF8&iwloc=&output=embed"
+                  src={mapEmbedUrl}
                 ></iframe>
               ) : (
                 <div 
@@ -200,7 +212,6 @@ const StoreInfo = () => {
                   <img src="/images/store/gachibowli_map.png" alt="Map Preview" className="store-map-img" style={{ display: 'block', width: '100%', height: '100%', objectFit: 'cover' }} />
                   <div className="google-watermark">Google</div>
                   
-                  {/* Load interactive map hover helper */}
                   <div 
                     className="map-load-overlay"
                     style={{
@@ -316,9 +327,8 @@ const StoreInfo = () => {
             </div>
           </div>
 
-          {/* Vertical Feature Cards - Right side floating */}
+          {/* Vertical Feature Cards */}
           <div className="store-vertical-features">
-            {/* Feature 1 */}
             <div className="store-feature-card">
               <div className="store-feature-icon clock-accent">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" width="18" height="18">
@@ -328,11 +338,10 @@ const StoreInfo = () => {
               </div>
               <div className="store-feature-text">
                 <span className="store-feature-title">Open Today</span>
-                <span className="store-feature-subtitle">9:00 AM - 10:00 PM</span>
+                <span className="store-feature-subtitle">{hours.split(' ')[0] || '9:00 AM'} - {hours.split(' ')[2] || '10:00 PM'}</span>
               </div>
             </div>
 
-            {/* Feature 2 */}
             <div className="store-feature-card">
               <div className="store-feature-icon shield-accent">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" width="18" height="18">
@@ -346,7 +355,6 @@ const StoreInfo = () => {
               </div>
             </div>
 
-            {/* Feature 3 */}
             <div className="store-feature-card">
               <div className="store-feature-icon pill-accent">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" width="18" height="18">
@@ -360,7 +368,6 @@ const StoreInfo = () => {
               </div>
             </div>
 
-            {/* Feature 4 */}
             <div className="store-feature-card">
               <div className="store-feature-icon delivery-accent">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" width="18" height="18">
