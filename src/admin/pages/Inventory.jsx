@@ -261,8 +261,8 @@ const Inventory = () => {
                   <td className="muted">{p.lastUpdated}</td>
                   <td>
                     <div style={{ display: 'flex', gap: 6 }}>
-                      <button className="btn btn-success btn-sm btn-icon" onClick={() => { setAdjustModal(p); setAdjustType('add'); setAdjustQty(''); setAdjustReason(''); }} title="Add stock"><Plus size={12} /></button>
-                      <button className="btn btn-danger btn-sm btn-icon" onClick={() => { setAdjustModal(p); setAdjustType('remove'); setAdjustQty(''); setAdjustReason(''); }} title="Remove stock"><Minus size={12} /></button>
+                      <button className="btn btn-success btn-sm btn-icon" onClick={(e) => { e.stopPropagation(); setAdjustModal(p); setAdjustType('add'); setAdjustQty(''); setAdjustReason(''); }} title="Add stock"><Plus size={12} /></button>
+                      <button className="btn btn-danger btn-sm btn-icon" onClick={(e) => { e.stopPropagation(); setAdjustModal(p); setAdjustType('remove'); setAdjustQty(''); setAdjustReason(''); }} title="Remove stock"><Minus size={12} /></button>
                     </div>
                   </td>
                 </tr>
@@ -355,7 +355,7 @@ const Inventory = () => {
 
       {/* Adjust Modal */}
       {adjustModal && (
-        <div className="modal-overlay" onClick={() => setAdjustModal(null)}>
+        <div className="modal-overlay" onClick={() => setAdjustModal(null)} style={{ opacity: 1, pointerEvents: 'auto', display: 'flex', position: 'fixed', inset: 0, zIndex: 10000, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', alignItems: 'center', justifyContent: 'center' }}>
           <div className="modal modal-sm" onClick={e => e.stopPropagation()}>
             <div className="modal-header">
               <div><h2>Manual Stock Adjustment</h2><p>{adjustModal.name}</p></div>

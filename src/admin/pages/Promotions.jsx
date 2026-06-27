@@ -54,57 +54,7 @@ const Promotions = () => {
     { id: 'CM4', title: 'Monsoon Medicine Kit', type: 'Homepage Banner', status: 'Draft', period: 'Jul 2026', discount: '10% off Fever & Pain' },
   ];
 
-  const CouponModal = () => (
-    <div className="modal-overlay" onClick={closeModal}>
-      <div className="modal modal-md" onClick={e => e.stopPropagation()}>
-        <div className="modal-header">
-          <div><h2>{modal === 'add' ? 'Create Coupon' : 'Edit Coupon'}</h2><p>Configure discount coupon settings</p></div>
-          <button className="modal-close" onClick={closeModal}>×</button>
-        </div>
-        <div className="modal-body">
-          <div className="form-row form-row-2">
-            <div className="form-group">
-              <label className="form-label">Coupon Code *</label>
-              <input className="form-input" value={form.code} onChange={e => setForm(f => ({ ...f, code: e.target.value.toUpperCase() }))} placeholder="e.g. SAVE10" />
-            </div>
-            <div className="form-group">
-              <label className="form-label">Discount Type</label>
-              <select className="form-select" value={form.type} onChange={e => setForm(f => ({ ...f, type: e.target.value }))}>
-                <option>Percentage</option>
-                <option>Fixed</option>
-              </select>
-            </div>
-          </div>
-          <div className="form-row form-row-3">
-            <div className="form-group">
-              <label className="form-label">Discount Value {form.type === 'Percentage' ? '(%)' : '(₹)'} *</label>
-              <input className="form-input" type="number" value={form.value} onChange={e => setForm(f => ({ ...f, value: e.target.value }))} />
-            </div>
-            <div className="form-group">
-              <label className="form-label">Usage Limit</label>
-              <input className="form-input" type="number" value={form.usageLimit} onChange={e => setForm(f => ({ ...f, usageLimit: e.target.value }))} placeholder="Unlimited" />
-            </div>
-            <div className="form-group">
-              <label className="form-label">Min Order (₹)</label>
-              <input className="form-input" type="number" value={form.minOrder} onChange={e => setForm(f => ({ ...f, minOrder: e.target.value }))} placeholder="0" />
-            </div>
-          </div>
-          <div className="form-group">
-            <label className="form-label">Expiry Date *</label>
-            <input className="form-input" type="date" value={form.expiry} onChange={e => setForm(f => ({ ...f, expiry: e.target.value }))} />
-          </div>
-          <label className="form-toggle" onClick={() => setForm(f => ({ ...f, active: !f.active }))}>
-            <div className={`toggle-switch${form.active ? ' on' : ''}`}><div className="toggle-knob" /></div>
-            <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>Active</span>
-          </label>
-        </div>
-        <div className="modal-footer">
-          <button className="btn btn-secondary" onClick={closeModal}>Cancel</button>
-          <button className="btn btn-primary" onClick={handleSave}>{modal === 'add' ? '+ Create Coupon' : '💾 Save'}</button>
-        </div>
-      </div>
-    </div>
-  );
+
 
   return (
     <AdminLayout>
@@ -113,7 +63,7 @@ const Promotions = () => {
           <h1>Promotions & Marketing</h1>
           <p>{coupons.length} coupons · {coupons.filter(c => c.active).length} active · {campaigns.length} campaigns</p>
         </div>
-        {tab === 'coupons' && <button className="btn btn-primary" onClick={openAdd}><Plus size={14} /> Create Coupon</button>}
+        {tab === 'coupons' && <button className="btn btn-primary" onClick={(e) => { e.stopPropagation(); console.log("Creating new Coupon"); openAdd(); }}><Plus size={14} /> Create Coupon</button>}
       </div>
 
       <div className="tab-bar" style={{ marginBottom: 20 }}>
@@ -147,8 +97,8 @@ const Promotions = () => {
                   </td>
                   <td>
                     <div style={{ display: 'flex', gap: 6 }}>
-                      <button className="btn btn-ghost btn-sm btn-icon" onClick={() => openEdit(c)}><Edit2 size={14} /></button>
-                      <button className="btn btn-ghost btn-sm btn-icon" style={{ color: 'var(--red)' }} onClick={() => openDelete(c)}><Trash2 size={14} /></button>
+                      <button className="btn btn-ghost btn-sm btn-icon" onClick={(e) => { e.stopPropagation(); console.log("Editing Coupon", c); openEdit(c); }}><Edit2 size={14} /></button>
+                      <button className="btn btn-ghost btn-sm btn-icon" style={{ color: 'var(--red)' }} onClick={(e) => { e.stopPropagation(); console.log("Deleting Coupon", c); openDelete(c); }}><Trash2 size={14} /></button>
                     </div>
                   </td>
                 </tr>
@@ -202,9 +152,17 @@ const Promotions = () => {
         </div>
       )}
 
-      {(modal === 'add' || modal === 'edit') && <CouponModal />}
+      {(modal === 'add' || modal === 'edit') && (
+        <CouponModal
+          modal={modal}
+          form={form}
+          setForm={setForm}
+          closeModal={closeModal}
+          handleSave={handleSave}
+        />
+      )}
       {modal === 'delete' && (
-        <div className="modal-overlay" onClick={closeModal}>
+        <div className="modal-overlay" onClick={closeModal} style={{ opacity: 1, pointerEvents: 'auto', display: 'flex', position: 'fixed', inset: 0, zIndex: 10000, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', alignItems: 'center', justifyContent: 'center' }}>
           <div className="modal modal-sm" onClick={e => e.stopPropagation()}>
             <div className="modal-header"><div><h2>Delete Coupon</h2><p>This action cannot be undone.</p></div><button className="modal-close" onClick={closeModal}>×</button></div>
             <div className="modal-body"><p style={{ color: 'var(--text-secondary)' }}>Delete coupon <strong>{selected?.code}</strong>?</p></div>
@@ -220,3 +178,63 @@ const Promotions = () => {
 };
 
 export default Promotions;
+
+const CouponModal = ({
+  modal,
+  form,
+  setForm,
+  closeModal,
+  handleSave
+}) => {
+  return (
+    <div className="modal-overlay" onClick={closeModal} style={{ opacity: 1, pointerEvents: 'auto', display: 'flex', position: 'fixed', inset: 0, zIndex: 10000, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', alignItems: 'center', justifyContent: 'center' }}>
+      <div className="modal modal-md" onClick={e => e.stopPropagation()}>
+        <div className="modal-header">
+          <div><h2>{modal === 'add' ? 'Create Coupon' : 'Edit Coupon'}</h2><p>Configure discount coupon settings</p></div>
+          <button className="modal-close" onClick={closeModal}>×</button>
+        </div>
+        <div className="modal-body">
+          <div className="form-row form-row-2">
+            <div className="form-group">
+              <label className="form-label">Coupon Code *</label>
+              <input className="form-input" value={form.code} onChange={e => setForm(f => ({ ...f, code: e.target.value.toUpperCase() }))} placeholder="e.g. SAVE10" />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Discount Type</label>
+              <select className="form-select" value={form.type} onChange={e => setForm(f => ({ ...f, type: e.target.value }))}>
+                <option>Percentage</option>
+                <option>Fixed</option>
+              </select>
+            </div>
+          </div>
+          <div className="form-row form-row-3">
+            <div className="form-group">
+              <label className="form-label">Discount Value {form.type === 'Percentage' ? '(%)' : '(₹)'} *</label>
+              <input className="form-input" type="number" value={form.value} onChange={e => setForm(f => ({ ...f, value: e.target.value }))} />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Usage Limit</label>
+              <input className="form-input" type="number" value={form.usageLimit} onChange={e => setForm(f => ({ ...f, usageLimit: e.target.value }))} placeholder="Unlimited" />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Min Order (₹)</label>
+              <input className="form-input" type="number" value={form.minOrder} onChange={e => setForm(f => ({ ...f, minOrder: e.target.value }))} placeholder="0" />
+            </div>
+          </div>
+          <div className="form-group">
+            <label className="form-label">Expiry Date *</label>
+            <input className="form-input" type="date" value={form.expiry} onChange={e => setForm(f => ({ ...f, expiry: e.target.value }))} />
+          </div>
+          <label className="form-toggle" onClick={() => setForm(f => ({ ...f, active: !f.active }))}>
+            <div className={`toggle-switch${form.active ? ' on' : ''}`}><div className="toggle-knob" /></div>
+            <span style={{ fontSize: 13, color: 'var(--text-secondary)' }}>Active</span>
+          </label>
+        </div>
+        <div className="modal-footer">
+          <button className="btn btn-secondary" onClick={closeModal}>Cancel</button>
+          <button className="btn btn-primary" onClick={handleSave}>{modal === 'add' ? '+ Create Coupon' : '💾 Save'}</button>
+        </div>
+      </div>
+    </div>
+  );
+};

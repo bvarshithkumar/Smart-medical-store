@@ -162,7 +162,7 @@ const Customers = () => {
                     <td>
                       <button 
                         className="btn btn-ghost btn-sm btn-icon" 
-                        onClick={() => setSelected(c)} 
+                        onClick={(e) => { e.stopPropagation(); console.log("Opening Customer Details", c); setSelected(c); }} 
                         title="View profile"
                       >
                         <Eye size={14} />
@@ -178,7 +178,7 @@ const Customers = () => {
 
       {/* Customer Profile Modal */}
       {selected && profile && (
-        <div className="modal-overlay" onClick={() => setSelected(null)}>
+        <div className="modal-overlay" onClick={() => { console.log("Closing Customer Details"); setSelected(null); }} style={{ opacity: 1, pointerEvents: 'auto', display: 'flex', position: 'fixed', inset: 0, zIndex: 10000, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', alignItems: 'center', justifyContent: 'center' }}>
           <div className="modal modal-xl" onClick={e => e.stopPropagation()} style={{ maxHeight: '88vh' }}>
             <div className="modal-header">
               <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>

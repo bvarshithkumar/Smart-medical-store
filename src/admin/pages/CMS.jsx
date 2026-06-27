@@ -891,7 +891,7 @@ const CMS = () => {
           {item.display_order !== undefined && <p style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>🔢 Display Order: {item.display_order}</p>}
         </div>
         <div className="cms-card-foot" style={{ display: 'flex', gap: 8, borderTop: '1px solid var(--border)', paddingTop: 10, marginTop: 'auto' }}>
-          <button className="btn btn-ghost btn-sm" onClick={() => openEdit(item)}><Edit2 size={12} /> Edit</button>
+          <button className="btn btn-ghost btn-sm" onClick={(e) => { e.stopPropagation(); console.log("Editing CMS Item", item); openEdit(item); }}><Edit2 size={12} /> Edit</button>
           <button className="btn btn-ghost btn-sm" onClick={() => toggleActive(item)}>{item.is_active ? <EyeOff size={12} /> : <Eye size={12} />} {item.is_active ? 'Hide' : 'Show'}</button>
           <button className="btn btn-ghost btn-sm" style={{ color: 'var(--red)', marginLeft: 'auto' }} onClick={() => handleDelete(item.id)}><Trash2 size={12} /></button>
         </div>
@@ -1353,7 +1353,7 @@ const CMS = () => {
             <button 
               type="button" 
               className="btn btn-secondary" 
-              onClick={() => setShowVersionsModal(true)}
+              onClick={(e) => { e.stopPropagation(); console.log("Opening Version History"); setShowVersionsModal(true); }}
               style={{ marginLeft: 'auto' }}
             >
               📜 Version History ({versions.length})
@@ -1382,7 +1382,7 @@ const CMS = () => {
           <button className={`btn btn-secondary`} onClick={() => setPreview(p => !p)}>
             {preview ? <EyeOff size={14} /> : <Eye size={14} />} {preview ? 'Hide Preview' : 'Live Preview'}
           </button>
-          <button className="btn btn-primary" onClick={openAdd}><Plus size={14} /> Add {tab.replace(/s$/, '')}</button>
+          <button className="btn btn-primary" onClick={(e) => { e.stopPropagation(); console.log("Adding CMS Item"); openAdd(); }}><Plus size={14} /> Add {tab.replace(/s$/, '')}</button>
         </div>
       </div>
 
@@ -1422,7 +1422,7 @@ const CMS = () => {
           <div 
             className="cms-card" 
             style={{ cursor: 'pointer', border: '2px dashed var(--border)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 8, padding: 24, minHeight: 180, borderRadius: 12, background: 'rgba(255,255,255,0.01)' }} 
-            onClick={openAdd}
+            onClick={(e) => { e.stopPropagation(); console.log("Adding CMS Item from Dashed Card"); openAdd(); }}
           >
             <Plus size={24} color="var(--text-muted)" />
             <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>Add {tab.replace(/s$/, '')}</span>
@@ -1432,7 +1432,7 @@ const CMS = () => {
 
 
       {modal && (
-        <div className="modal-overlay" onClick={closeModal} style={{ zIndex: 9999 }}>
+        <div className="modal-overlay" onClick={closeModal} style={{ opacity: 1, pointerEvents: 'auto', display: 'flex', position: 'fixed', inset: 0, zIndex: 10000, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', alignItems: 'center', justifyContent: 'center' }}>
           <div className="modal modal-md" onClick={e => e.stopPropagation()} style={{ background: 'var(--bg-card)', borderRadius: 16, overflow: 'hidden' }}>
             <form onSubmit={handleSave}>
               <div className="modal-header">
@@ -1456,7 +1456,7 @@ const CMS = () => {
 
       {/* Version History Modal */}
       {showVersionsModal && (
-        <div className="modal-overlay" onClick={() => setShowVersionsModal(false)} style={{ zIndex: 9999 }}>
+        <div className="modal-overlay" onClick={() => { console.log("Closing Version History Modal"); setShowVersionsModal(false); }} style={{ opacity: 1, pointerEvents: 'auto', display: 'flex', position: 'fixed', inset: 0, zIndex: 10000, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', alignItems: 'center', justifyContent: 'center' }}>
           <div className="modal modal-md" onClick={e => e.stopPropagation()} style={{ background: 'var(--bg-card)', borderRadius: 16, overflow: 'hidden' }}>
             <div className="modal-header">
               <div>
