@@ -38,11 +38,73 @@ const Tracking = () => {
   // Currently tracked prescription
   const [trackedPrescription, setTrackedPrescription] = useState(null);
 
-  // Customer profile type + active quote
+  // Customer profile info, type + active quote
+  const [trackedCustomerProfile, setTrackedCustomerProfile] = useState(null);
   const [trackedCustomerType, setTrackedCustomerType] = useState(null);
   const [trackedActiveQuote,  setTrackedActiveQuote]  = useState(null);
 
-  // 1. Check if we received a Reference ID from location state or localStorage
+  // 1. Unified function to load details
+  const loadPrescriptionDetails = async (rx) => {
+    if (!rx) return;
+    try {
+      // Fetch customer profile details
+      if (rx.user_id) {
+        const { data: prof, error: profErr } = await supabase
+          .from('profiles')
+          .select('customer_type, full_name, phone, phone_number')
+          .eq('id', rx.user_id)
+          .maybeSingle();
+
+        if (profErr) {
+          console.error('[Tracking] Profile fetch failed:', profErr);
+        } else if (prof) {
+          setTrackedCustomerType(prof.customer_type || 'registered');
+          setTrackedCustomerProfile(prof);
+        }
+      } else {
+        setTrackedCustomerType('walk_in');
+        setTrackedCustomerProfile(null);
+      }
+
+      // Fetch active quote (including version_number and status timestamps)
+      const { data: q, error: qErr } = await supabase
+        .from('prescription_quotes')
+        .select('quote_number, total_amount, status, is_active, quote_status, version_number, sent_at, viewed_at, created_at')
+        .eq('prescription_id', rx.id)
+        .eq('is_active', true)
+        .maybeSingle();
+
+      if (qErr) {
+        console.error('[Tracking] Quote fetch failed:', qErr);
+      } else {
+        setTrackedActiveQuote(q || null);
+      }
+    } catch (err) {
+      console.error('[Tracking] Error loading details:', err);
+    }
+  };
+
+  // Sync profile/quote details when prescription updates
+  useEffect(() => {
+    if (trackedPrescription) {
+      loadPrescriptionDetails(trackedPrescription);
+    } else {
+      setTrackedCustomerType(null);
+      setTrackedCustomerProfile(null);
+      setTrackedActiveQuote(null);
+    }
+  }, [trackedPrescription?.id, trackedPrescription?.status]);
+
+  // Clean up realtime subscription on unmount
+  useEffect(() => {
+    return () => {
+      if (trackedPrescription?.id) {
+        supabase.channel(`rx-tracking-page-${trackedPrescription.id}`).unsubscribe();
+      }
+    };
+  }, [trackedPrescription?.id]);
+
+  // 2. Check if we received a Reference ID from location state or localStorage
   useEffect(() => {
     if (location.state?.referenceId) {
       setSearchId(location.state.referenceId);
@@ -56,7 +118,7 @@ const Tracking = () => {
     }
   }, [location.state, supabaseUser]);
 
-  // 2. Fetch logged-in user's prescriptions
+  // 3. Fetch logged-in user's prescriptions
   useEffect(() => {
     const fetchUserPrescriptions = async () => {
       if (!supabaseUser) return;
@@ -79,7 +141,7 @@ const Tracking = () => {
         // If not already tracking a specific ID from location state, select the latest one
         if (!location.state?.referenceId && data.length > 0) {
           setTrackedPrescription(data[0]);
-          setSearchId(data[0].reference_id);
+          setSearchId(data[0].reference_id || `RX-${data[0].id.substring(0, 8).toUpperCase()}`);
           subscribeToRealtime(data[0].id);
         }
       } catch (err) {
@@ -94,7 +156,7 @@ const Tracking = () => {
   }, [supabaseUser, location.state]);
 
 
-  // 3. Setup realtime channel helper
+  // 4. Setup realtime channel helper
   const subscribeToRealtime = (rxId) => {
     supabase.channel(`rx-tracking-page-${rxId}`).unsubscribe();
 
@@ -133,7 +195,7 @@ const Tracking = () => {
       .subscribe();
   };
 
-  // 4. Search function helper
+  // 5. Search function helper (supporting exact reference ID and UUID prefix fallback)
   const handleSearchById = async (idToSearch) => {
     const id = (idToSearch || searchId).trim().toUpperCase();
     if (!id) return;
@@ -144,48 +206,26 @@ const Tracking = () => {
 
     try {
       const data = await fetchWithTimeout(async (signal) => {
-        const { data, error } = await supabase
-          .from('prescriptions')
-          .select('*')
-          .eq('reference_id', id)
-          .abortSignal(signal)
-          .single();
-
-        if (error) {
-          if (error.code === 'PGRST116') {
-            throw new Error('No prescription found matching this Reference ID.');
-          } else {
-            throw error;
-          }
+        let query = supabase.from('prescriptions').select('*');
+        
+        if (id.startsWith('RX-') && id.length === 11) {
+          const uuidPrefix = id.replace('RX-', '').toLowerCase();
+          query = query.or(`reference_id.eq.${id},id.like.${uuidPrefix}%`);
+        } else {
+          query = query.eq('reference_id', id);
         }
+
+        const { data, error } = await query.abortSignal(signal).maybeSingle();
+        
+        if (error) throw error;
+        if (!data) throw new Error('No prescription found matching this Reference ID.');
         return data;
       });
 
       if (data) {
         setTrackedPrescription(data);
-        setSearchId(data.reference_id);
+        setSearchId(data.reference_id || `RX-${data.id.substring(0, 8).toUpperCase()}`);
         subscribeToRealtime(data.id);
-
-        // Fetch customer type from profiles if user_id exists
-        if (data.user_id) {
-          supabase
-            .from('profiles')
-            .select('customer_type')
-            .eq('id', data.user_id)
-            .maybeSingle()
-            .then(({ data: prof }) => setTrackedCustomerType(prof?.customer_type || 'registered'));
-        } else {
-          setTrackedCustomerType('walk_in');
-        }
-
-        // Fetch active quote (include viewed_at and created_at)
-        supabase
-          .from('prescription_quotes')
-          .select('quote_number, total_amount, status, is_active, quote_status, version_number, sent_at, viewed_at, created_at')
-          .eq('prescription_id', data.id)
-          .eq('is_active', true)
-          .maybeSingle()
-          .then(({ data: q }) => setTrackedActiveQuote(q || null));
       }
     } catch (err) {
       console.error('Search error:', err);
@@ -201,46 +241,29 @@ const Tracking = () => {
     const selected = userPrescriptions.find(p => p.id === selectedId);
     if (selected) {
       setTrackedPrescription(selected);
-      setSearchId(selected.reference_id);
+      setSearchId(selected.reference_id || `RX-${selected.id.substring(0, 8).toUpperCase()}`);
       subscribeToRealtime(selected.id);
       setErrorMsg('');
-      // Load customer type
-      if (selected.user_id) {
-        supabase
-          .from('profiles')
-          .select('customer_type')
-          .eq('id', selected.user_id)
-          .maybeSingle()
-          .then(({ data: prof }) => setTrackedCustomerType(prof?.customer_type || 'registered'));
-      } else {
-        setTrackedCustomerType('walk_in');
-      }
-      // Load active quote
-      supabase
-        .from('prescription_quotes')
-        .select('quote_number, total_amount, status, is_active, quote_status, version_number, sent_at, viewed_at, created_at')
-        .eq('prescription_id', selected.id)
-        .eq('is_active', true)
-        .maybeSingle()
-        .then(({ data: q }) => setTrackedActiveQuote(q || null));
     }
   };
 
   const handleCopyId = (id) => {
-    navigator.clipboard.writeText(id);
+    const finalId = id || (trackedPrescription ? `RX-${trackedPrescription.id.substring(0, 8).toUpperCase()}` : '');
+    navigator.clipboard.writeText(finalId);
     showToast('Reference ID copied!', 'Success');
   };
 
+  // Normalizes status labels to handle underscores, spacing, and casing formats (e.g. "Ready For Pickup")
   const getStatusIndex = (status) => {
-    const s = status ? status.toLowerCase() : '';
+    const s = status ? status.toLowerCase().replace(/[\s_-]+/g, '') : '';
     if (s === 'pending' || s === 'uploaded') return 0;
-    if (s === 'under_review') return 1;
-    if (s === 'quote_generated' || s === 'quote_sent') return 2;
-    if (s === 'customer_requested_changes') return 3;
-    if (s === 'revised_quote_generated') return 4;
-    if (s === 'customer_accepted' || s === 'accepted_by_customer') return 5;
-    if (s === 'preparing_medicines') return 6;
-    if (s === 'ready_for_pickup') return 7;
+    if (s === 'underreview') return 1;
+    if (s === 'quotegenerated' || s === 'quotesent') return 2;
+    if (s === 'customerrequestedchanges') return 3;
+    if (s === 'revisedquotegenerated') return 4;
+    if (s === 'customeraccepted' || s === 'acceptedbycustomer') return 5;
+    if (s === 'preparingmedicines') return 6;
+    if (s === 'readyforpickup') return 7;
     if (s === 'collected' || s === 'completed') return 8;
     if (s === 'rejected') return -1;
     return 0;
@@ -323,11 +346,14 @@ const Tracking = () => {
                   cursor: 'pointer'
                 }}
               >
-                {userPrescriptions.map(p => (
-                  <option key={p.id} value={p.id}>
-                    {p.reference_id} ({p.status.toUpperCase().replace('_', ' ')}) - {new Date(p.created_at).toLocaleDateString()}
-                  </option>
-                ))}
+                {userPrescriptions.map(p => {
+                  const displayId = p.reference_id || `RX-${p.id.substring(0, 8).toUpperCase()}`;
+                  return (
+                    <option key={p.id} value={p.id}>
+                      {displayId} ({p.status.toUpperCase().replace('_', ' ')}) - {new Date(p.created_at).toLocaleDateString()}
+                    </option>
+                  );
+                })}
               </select>
             </div>
           )}
@@ -520,7 +546,7 @@ const Tracking = () => {
                 <div className="receipt-row" style={{ margin: '14px 0 10px 0', fontSize: '13px' }}>
                   <span style={{ color: 'var(--text-secondary, #64748b)' }}>Reference ID</span>
                   <span style={{ fontWeight: 800, color: 'var(--teal-accent, #00A884)' }}>
-                    {trackedPrescription.reference_id}
+                    {trackedPrescription.reference_id || `RX-${trackedPrescription.id.substring(0, 8).toUpperCase()}`}
                   </span>
                 </div>
 
@@ -548,14 +574,14 @@ const Tracking = () => {
                 <div className="receipt-row" style={{ marginBottom: '10px', fontSize: '13px' }}>
                   <span style={{ color: 'var(--text-secondary, #64748b)' }}>Customer Name</span>
                   <span style={{ fontWeight: 700, color: 'white' }}>
-                    {trackedPrescription.customer_name}
+                    {trackedPrescription.customer_name || trackedCustomerProfile?.full_name || user?.name || user?.full_name || supabaseUser?.email || 'Registered Customer'}
                   </span>
                 </div>
 
                 <div className="receipt-row" style={{ marginBottom: '10px', fontSize: '13px' }}>
                   <span style={{ color: 'var(--text-secondary, #64748b)' }}>Phone Number</span>
                   <span style={{ fontWeight: 700, color: 'white' }}>
-                    {trackedPrescription.phone}
+                    {trackedPrescription.phone || trackedCustomerProfile?.phone || trackedCustomerProfile?.phone_number || user?.phone || 'N/A'}
                   </span>
                 </div>
 
