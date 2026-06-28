@@ -86,6 +86,12 @@ All layout, responsive columns, header/navbar, mobile admin panel, customer draw
     - **Bottom Fold Recommendations:**
       ![Bottom Fold Recommendations](/C:/Users/a%20sai%20sathwik/.gemini/antigravity-ide/brain/6afa076b-d33d-4846-b30d-4ed1717a2f27/bottom_fold_1782665197691.png)
 
+## Floating WhatsApp Icon Removal
+* **Changes Implemented:**
+  - Removed the `<FloatingWhatsApp />` component rendering instance from [`MedicineDetails.jsx`](file:///c:/Users/a%20sai%20sathwik/Downloads/rocking/src/pages/MedicineDetails.jsx).
+  - Cleaned up the unused imports for `FloatingWhatsApp` inside [`Home.jsx`](file:///c:/Users/a%20sai%20sathwik/Downloads/rocking/src/pages/Home.jsx) and [`MedicineDetails.jsx`](file:///c:/Users/a%20sai%20sathwik/Downloads/rocking/src/pages/MedicineDetails.jsx).
+
+
 
 
 
