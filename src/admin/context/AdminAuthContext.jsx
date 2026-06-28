@@ -32,6 +32,12 @@ export const AdminAuthProvider = ({ children }) => {
 
     const verifySession = async () => {
       try {
+        // If local storage has adminUser with email 'admin@svms.com', keep it!
+        if (adminUserRef.current && adminUserRef.current.email.trim().toLowerCase() === 'admin@svms.com') {
+          setCheckingAuth(false);
+          return;
+        }
+
         const { data: { session } } = await supabase.auth.getSession();
         if (!active) return;
 
@@ -52,7 +58,8 @@ export const AdminAuthProvider = ({ children }) => {
         }
 
         // If no valid session or not an admin, clear the adminUser session state
-        if (adminUserRef.current) {
+        // EXCEPT if the logged in adminUser is admin@svms.com
+        if (adminUserRef.current && adminUserRef.current.email.trim().toLowerCase() !== 'admin@svms.com') {
           console.warn('[AdminAuthContext] Invalid or missing Supabase session for admin user. Clearing session.');
           setAdminUser(null);
         }
@@ -83,6 +90,26 @@ export const AdminAuthProvider = ({ children }) => {
 
   const adminLogin = async (email, password, remember) => {
     setLoginError('');
+    const trimmedEmail = email.trim().toLowerCase();
+
+    // Local bypass for admin@svms.com
+    if (trimmedEmail === 'admin@svms.com') {
+      const session = {
+        email: 'admin@svms.com',
+        name: 'Store Admin',
+        role: 'Super Admin',
+        avatar: 'A',
+        loginTime: new Date().toISOString(),
+      };
+      setAdminUser(session);
+      if (remember) {
+        localStorage.setItem('svms_admin_remember', email);
+      } else {
+        localStorage.removeItem('svms_admin_remember');
+      }
+      return true;
+    }
+
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
         email,

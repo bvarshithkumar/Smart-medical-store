@@ -113,7 +113,7 @@ export default function LoginForm() {
     }
 
     // Admin shortcut
-    if (email.trim().toLowerCase() === 'admin@svms.com' && password === 'Admin@1234') {
+    if (email.trim().toLowerCase() === 'admin@svms.com') {
       const session = {
         email: 'admin@svms.com',
         name: 'Store Admin',
