@@ -130,6 +130,19 @@ All layout, responsive columns, header/navbar, mobile admin panel, customer draw
   - **Navbar Click Scrolled Position:**
     ![Medicines Scrolled Section View](/C:/Users/a%20sai%20sathwik/.gemini/antigravity-ide/brain/6afa076b-d33d-4846-b30d-4ed1717a2f27/scrolled_medicines_1782671406058.png)
 
+## Wellness Cards Light Mode MRP Strike-Off Fix
+* **Issue Identified:**
+  - In light mode, the original MRP price for cards in the "Daily Health & Care" (Wellness Essentials) section did not display a strike-through line, and was rendered touching the discounted price (e.g. `₹120.00₹150.00`).
+  - The styling rules for `.new-price` and `.old-price` (which declare the `line-through` strike-off and text decoration) were defined exclusively under the `[data-theme="dark"]` CSS rule block in `style.css`.
+* **Fix & Solution Implemented:**
+  - **Global CSS Rules:** Added global, theme-agnostic layout and styling rules in [`style.css`](file:///c:/Users/a%20sai%20sathwik/Downloads/rocking/style.css) for `.price-stack`, `.new-price`, and `.old-price`.
+  - **Layout & Strike-Off:** Enabled `display: flex; gap: 8px; align-items: baseline;` on the price wrapper (ensuring clean separation) and forced `text-decoration: line-through` on `.old-price` by default.
+  - **Theme Color Integration:** Theme-specific colors continue to overwrite the base selectors seamlessly (e.g. slate for dark mode, muted gray for light mode).
+* **Verification Images:**
+  - **Light Mode MRP Verified:**
+    ![Light Mode Spacing and Strike-off](/C:/Users/a%20sai%20sathwik/.gemini/antigravity-ide/brain/6afa076b-d33d-4846-b30d-4ed1717a2f27/light_mode_mrp_verified_1782672487873.png)
+
+
 
 
 
