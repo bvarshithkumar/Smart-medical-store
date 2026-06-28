@@ -119,6 +119,18 @@ All layout, responsive columns, header/navbar, mobile admin panel, customer draw
 * **Fix & Solution Implemented:**
   - **Background Auto-Authentication checks:** Added a background auth verification handler to the file upload controllers inside `CMS.jsx` and `Support.jsx`. If the local Supabase client instance has no active session, it automatically signs in using the default admin credentials (`admin@svms.com` / `Admin@1234`) in the background before starting the storage upload.
 
+## Medicines Navbar Click Scroll Integration
+* **Issue Identified:**
+  - Clicking on the "Medicines" link in the header navbar or clicking category cards did not scroll the home view to the medicines section.
+  - The Navbar target and category scrolls looked up `'popular-medicines'` (hyphenated), while the section wrapper element had its ID set to `'popular_medicines'` (underscored, matched from the database table section key).
+* **Fix & Solution Implemented:**
+  - **Dynamic ID Mapping:** Modified the section wrapper element in [`Home.jsx`](file:///c:/Users/a%20sai%20sathwik/Downloads/rocking/src/pages/Home.jsx) to output `'popular-medicines'` (hyphenated) as its DOM ID attribute when `config.section_key === 'popular_medicines'`.
+  - **Result:** Resolves the ID mismatch cleanly. Now, all navbar click scroll events, carousel redirects, footer links, and category card click scrolls locate and transition smoothly to the medicines catalog viewport.
+* **Verification Images:**
+  - **Navbar Click Scrolled Position:**
+    ![Medicines Scrolled Section View](/C:/Users/a%20sai%20sathwik/.gemini/antigravity-ide/brain/6afa076b-d33d-4846-b30d-4ed1717a2f27/scrolled_medicines_1782671406058.png)
+
+
 
 
 
