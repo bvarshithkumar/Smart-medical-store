@@ -1,0 +1,46 @@
+# Walkthrough - Intermittent Homepage Rendering, Order History, Responsive Header, Navbar & Mobile Admin Panel
+
+All layout, responsive columns, header/navbar, mobile admin panel, customer drawer order history cards, login role redirection, and homepage rendering configuration upgrades are now fully complete and verified.
+
+## Homepage Intermittent Rendering Fix
+* **Root Cause Analysis:**
+  1. **ReferenceError:** `cmsService` was referenced inside `WellnessEssentials.jsx` (loadData block) but was never imported at the top of the file. This caused a javascript reference exception during initialization.
+  2. **Unchecked `.map()` loop:** If the dynamic database categories request returned `null` or `undefined`, the category mapping function `categories.map(...)` inside `Home.jsx` threw a `TypeError` during the React render phase.
+  3. **Lack of Error Isolation:** Since dynamic sections were mapped in a single list without an Error Boundary, any rendering exception in a single component (such as the categories list crash or child render errors) caused the entire homepage dynamic content to crash, leaving only the Navbar and Footer visible.
+  4. **Missing Loading Indicators:** During initial Supabase sections loading, the page displayed a blank container, creating the appearance of a rendering lockup.
+* **Fixes Implemented:**
+  - **Imported `cmsService`:** Added correct import at the top of [`WellnessEssentials.jsx`](file:///c:/Users/a%20sai%20sathwik/Downloads/rocking/src/components/WellnessEssentials.jsx).
+  - **Categories Safe Check:** Added try/catch and array validation inside `fetchCategories` inside [`Home.jsx`](file:///c:/Users/a%20sai%20sathwik/Downloads/rocking/src/pages/Home.jsx) to ensure the `categories` array never defaults to a crashable state.
+  - **Created Section ErrorBoundary:** Implemented a new, premium React Class Component [`ErrorBoundary.jsx`](file:///c:/Users/a%20sai%20sathwik/Downloads/rocking/src/components/ErrorBoundary.jsx) that catches and logs rendering exceptions. Wrapped each dynamic section inside it so a failure in one section does not crash other sections.
+  - **High-Fidelity Skeleton Loader:** Integrated glowing, shimmering skeleton placeholders (`.shimmer-dark`) for the Hero, Stats, Categories, and Products Grid to represent loading states.
+
+## Customer Details Drawer Order History Card Upgrades
+* **Removed Em-Dashes & Empty Placeholders:** Replaced all default `'—'` (em-dashes) and blank parameters with descriptive context flags (e.g., `'Not Set'`, `'Pending'`, `'Not Collected'`, `'Not Scheduled'`).
+* **Prescription Ref Field:** Displays the reference ID, or warning badges like `Pending Upload`, `OTC Order`, or `Not Required`.
+* **Clickable Quotation Badges:** Clicking a Quote Number badge triggers `window.open` loading the associated quotation PDF.
+
+## Persistent Admin Panel Redirect for `admin@svms.com`
+* **Features:** Any login matching `admin@svms.com` (case-insensitive, trimmed) logs into the Super Admin session locally and redirects straight to `/admin` instead of the customer profile.
+
+## Admin Panel Mobile Compatibility Fixes
+* **Features:** Responsive mobile slide-in drawer layout, blurred backdrop clicks, horizontal tabs swiping, data tables horizontal scrollbar container, and stacked mobile inputs.
+
+## Dynamic Store Location & Contact Details
+* **Features:** Custom configuration inputs inside the Store Location CMS tab for storefront image, WhatsApp, maps URL, embed maps, support email, emergency phone, and hours.
+
+---
+
+## Verification and Compilation Status
+* Verified that the local server compiles correctly with zero warnings or HMR errors.
+* Verified responsive rules for breakpoints: `1400px`, `1200px`, `992px`, `768px`, `576px`, `480px`, `360px` with dynamic scaling.
+
+## Supabase Storage Image Upload RLS Audit & Fixes
+* **Root Cause Analysis:**
+  1. **Missing RLS policies for `cms-assets` bucket:** The SQL migrations database only contained storage security rules for the `prescriptions` bucket. Because RLS is enabled by default on storage objects, uploading to `cms-assets` without explicit insert policies failed with `"new row violates row-level security policy"`.
+  2. **Supabase Authentication Bypass:** The `admin@svms.com` superadmin shortcut bypassed Supabase authentication to prevent storefront redirection issues. However, this left the local client unauthenticated within the Supabase context, violating RLS write policies.
+* **Fixes Implemented:**
+  - **Created SQL Migrations:** Created [`add_cms_assets_storage_policies.sql`](file:///c:/Users/a%20sai%20sathwik/Downloads/rocking/add_cms_assets_storage_policies.sql) which ensures the `cms-assets` bucket is created, configured to public, and granted SELECT rules for public access and INSERT/UPDATE/DELETE rules for authenticated admin users under the `products/` sub-folder path.
+  - **Pre-upload Session Verification & Auto-Auth Fallback:** Updated the image upload pipeline inside [`Products.jsx`](file:///c:/Users/a%20sai%20sathwik/Downloads/rocking/src/admin/pages/Products.jsx) to check for a valid session before uploading. If the admin is logged in locally via the bypass (without a Supabase session), the client automatically triggers background auto-authentication using the default credentials (`admin@svms.com` / `Admin@1234`) to authorize the file transfer.
+  - **Storefront Login Integration:** Configured background auth triggers inside [`LoginForm.jsx`](file:///c:/Users/a%20sai%20sathwik/Downloads/rocking/src/components/auth/LoginForm.jsx), [`Login.jsx`](file:///c:/Users/a%20sai%20sathwik/Downloads/rocking/src/pages/Login.jsx), and [`AdminAuthContext.jsx`](file:///c:/Users/a%20sai%20sathwik/Downloads/rocking/src/admin/context/AdminAuthContext.jsx) to sign the admin user in to Supabase in the background when logging in.
+  - **Inline UI Error Indicators:** Replaced the default browser `alert()` popups with detailed red UI error indicators (`uploadError` rendering via Lucide `<AlertTriangle />`) inside the product creation and editing modals.
+
