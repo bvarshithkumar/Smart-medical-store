@@ -118,10 +118,6 @@ const AdminLogin = () => {
                     {loading ? '⏳ Signing in…' : '🔐 Sign In to Admin Panel'}
                   </button>
                 </form>
-
-                <div className="login-creds-hint">
-                  <strong>Demo:</strong> admin@svms.com &nbsp;/&nbsp; Admin@1234
-                </div>
               </>
             ) : (
               <>
