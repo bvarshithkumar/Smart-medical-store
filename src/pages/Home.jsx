@@ -5,7 +5,6 @@ import Carousel from '../components/Carousel';
 import QuickActions from '../components/QuickActions';
 import CategoryCard, { categoriesData } from '../components/CategoryCard';
 import MedicineCard from '../components/MedicineCard';
-import FloatingWhatsApp from '../components/FloatingWhatsApp';
 import SearchBar from '../components/SearchBar';
 import SchedulerModal from '../components/SchedulerModal';
 import { medicineService, mapProduct } from '../services/medicineService';

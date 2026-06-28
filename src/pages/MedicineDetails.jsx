@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ShoppingCart, Heart, Share2, Plus, Minus, Check, FileText, Award, ShieldCheck, Lock, CreditCard, ArrowLeft, Sparkles, ArrowRight } from 'lucide-react';
 import Navbar from '../components/Navbar';
-import FloatingWhatsApp from '../components/FloatingWhatsApp';
 import { medicineService, mapProduct } from '../services/medicineService';
 import { useCart } from '../context/CartContext';
 import { supabase } from '../lib/supabase';
@@ -596,8 +595,6 @@ const MedicineDetails = () => {
         </section>
 
       </main>
-
-      <FloatingWhatsApp />
     </div>
   );
 };
