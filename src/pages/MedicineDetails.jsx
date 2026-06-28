@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ShoppingCart, Heart, Share2, Plus, Minus, Check, FileText, Award, ShieldCheck, Lock, CreditCard, ArrowLeft, Sparkles, ArrowRight } from 'lucide-react';
+import { ShoppingCart, Heart, Share2, Plus, Minus, Check, FileText, Award, ShieldCheck, Lock, CreditCard, ArrowLeft, Sparkles, ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
 import Navbar from '../components/Navbar';
 import { medicineService, mapProduct } from '../services/medicineService';
 import { useCart } from '../context/CartContext';
@@ -137,16 +137,30 @@ const MedicineDetails = () => {
     touchStartX.current = e.changedTouches[0].screenX;
   };
 
+  const galleryImages = medicine.images || [];
+  const imageCount = galleryImages.length;
+
   const handleTouchEnd = (e) => {
+    if (imageCount <= 1) return;
     touchEndX.current = e.changedTouches[0].screenX;
     const diff = touchStartX.current - touchEndX.current;
     if (Math.abs(diff) > 50) {
       if (diff > 0) {
-        setCurrentSlide(prev => Math.min(2, prev + 1));
+        setCurrentSlide(prev => Math.min(imageCount - 1, prev + 1));
       } else {
         setCurrentSlide(prev => Math.max(0, prev - 1));
       }
     }
+  };
+
+  const handlePrevSlide = () => {
+    if (imageCount <= 1) return;
+    setCurrentSlide(prev => (prev === 0 ? imageCount - 1 : prev - 1));
+  };
+
+  const handleNextSlide = () => {
+    if (imageCount <= 1) return;
+    setCurrentSlide(prev => (prev === imageCount - 1 ? 0 : prev + 1));
   };
 
   // Quantity control
@@ -242,53 +256,159 @@ const MedicineDetails = () => {
           
           {/* Left Column: Image Section */}
           <div className="product-image-column">
-            <div className="gallery-container-box">
-              <div 
-                className="gallery-track-slider"
-                onTouchStart={handleTouchStart}
-                onTouchEnd={handleTouchEnd}
-                style={{
-                  transform: `translateX(-${currentSlide * 33.333}%)`
-                }}
-              >
-                <div className="gallery-slide-item">
-                  <div className="gallery-img-container">
-                    <div className="detail-img-radial-glow" style={{ background: `radial-gradient(circle, ${medicine.glowColor || 'rgba(20, 184, 166, 0.15)'} 0%, rgba(255,255,255,0) 70%)` }} />
-                    <img src={medicine.image_url || medicine.image} alt={medicine.name} className="detail-img-element" />
-                  </div>
-                </div>
-                <div className="gallery-slide-item">
-                  <div className="gallery-img-container">
-                    <div className="detail-img-radial-glow" style={{ background: `radial-gradient(circle, ${medicine.glowColor || 'rgba(20, 184, 166, 0.15)'} 0%, rgba(255,255,255,0) 70%)` }} />
-                    <img src={medicine.image_url || medicine.image} alt={`${medicine.name} - View 2`} className="detail-img-element" style={{ transform: 'rotate(5deg) scale(0.95)' }} />
-                  </div>
-                </div>
-                <div className="gallery-slide-item">
-                  <div className="gallery-img-container">
-                    <div className="detail-img-radial-glow" style={{ background: `radial-gradient(circle, ${medicine.glowColor || 'rgba(20, 184, 166, 0.15)'} 0%, rgba(255,255,255,0) 70%)` }} />
-                    <img src={medicine.image_url || medicine.image} alt={`${medicine.name} - View 3`} className="detail-img-element" style={{ transform: 'skewY(-2deg) scale(0.9)' }} />
-                  </div>
+            {imageCount === 0 ? (
+              <div className="gallery-container-box" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '16px' }}>
+                <div className="detail-img-radial-glow" style={{ background: `radial-gradient(circle, rgba(20, 184, 166, 0.1) 0%, rgba(255,255,255,0) 70%)` }} />
+                <svg viewBox="0 0 24 24" width="64" height="64" stroke="var(--text-light)" strokeWidth="1.5" fill="none" strokeLinecap="round" strokeLinejoin="round" style={{ opacity: 0.6 }}>
+                  <path d="M6 3h12v4H6zM4 7h16v13a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z" />
+                  <line x1="9" y1="12" x2="15" y2="12" />
+                  <line x1="12" y1="9" x2="12" y2="15" />
+                </svg>
+                <span style={{ fontSize: '15px', color: 'var(--text-muted)', fontWeight: '600' }}>No Image Available</span>
+              </div>
+            ) : imageCount === 1 ? (
+              <div className="gallery-container-box" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div className="gallery-img-container">
+                  <div className="detail-img-radial-glow" style={{ background: `radial-gradient(circle, ${medicine.glowColor || 'rgba(20, 184, 166, 0.15)'} 0%, rgba(255,255,255,0) 70%)` }} />
+                  <img 
+                    src={galleryImages[0]} 
+                    alt={medicine.name} 
+                    className="detail-img-element" 
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = '/images/cat_medicines.png';
+                    }}
+                  />
                 </div>
               </div>
-            </div>
+            ) : (
+              <>
+                <div className="gallery-container-box" style={{ position: 'relative' }}>
+                  <div 
+                    className="gallery-track-slider"
+                    onTouchStart={handleTouchStart}
+                    onTouchEnd={handleTouchEnd}
+                    style={{
+                      width: `${imageCount * 100}%`,
+                      transform: `translateX(-${currentSlide * (100 / imageCount)}%)`,
+                      display: 'flex',
+                      transition: 'transform 0.4s cubic-bezier(0.25, 1, 0.5, 1)'
+                    }}
+                  >
+                    {galleryImages.map((imgUrl, idx) => (
+                      <div key={idx} className="gallery-slide-item" style={{ width: `${100 / imageCount}%` }}>
+                        <div className="gallery-img-container">
+                          <div className="detail-img-radial-glow" style={{ background: `radial-gradient(circle, ${medicine.glowColor || 'rgba(20, 184, 166, 0.15)'} 0%, rgba(255,255,255,0) 70%)` }} />
+                          <img 
+                            src={imgUrl} 
+                            alt={`${medicine.name} - View ${idx + 1}`} 
+                            className="detail-img-element" 
+                            onError={(e) => {
+                              e.target.onerror = null;
+                              e.target.src = '/images/cat_medicines.png';
+                            }}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
 
-            <div className="gallery-thumbs-row">
-              <div className={`gallery-thumb-item ${currentSlide === 0 ? 'active' : ''}`} onClick={() => setSlide(0)}>
-                <img src={medicine.image_url || medicine.image} alt="Thumbnail 1" />
-              </div>
-              <div className={`gallery-thumb-item ${currentSlide === 1 ? 'active' : ''}`} onClick={() => setSlide(1)}>
-                <img src={medicine.image_url || medicine.image} alt="Thumbnail 2" style={{ transform: 'rotate(5deg) scale(0.95)' }} />
-              </div>
-              <div className={`gallery-thumb-item ${currentSlide === 2 ? 'active' : ''}`} onClick={() => setSlide(2)}>
-                <img src={medicine.image_url || medicine.image} alt="Thumbnail 3" style={{ transform: 'skewY(-2deg) scale(0.9)' }} />
-              </div>
-            </div>
+                  {/* Next/Prev Navigation Buttons if 3 or more images */}
+                  {imageCount >= 3 && (
+                    <>
+                      <button 
+                        onClick={handlePrevSlide} 
+                        style={{
+                          position: 'absolute',
+                          left: '12px',
+                          top: '50%',
+                          transform: 'translateY(-50%)',
+                          width: '36px',
+                          height: '36px',
+                          borderRadius: '50%',
+                          backgroundColor: 'var(--bg-card)',
+                          border: '1px solid var(--border-main)',
+                          color: 'var(--text-main)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          cursor: 'pointer',
+                          zIndex: 5,
+                          transition: 'var(--transition-fast)',
+                          boxShadow: 'var(--shadow-sm)'
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--teal-accent-light)'}
+                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--bg-card)'}
+                        aria-label="Previous image"
+                      >
+                        <ChevronLeft size={18} />
+                      </button>
+                      <button 
+                        onClick={handleNextSlide} 
+                        style={{
+                          position: 'absolute',
+                          right: '12px',
+                          top: '50%',
+                          transform: 'translateY(-50%)',
+                          width: '36px',
+                          height: '36px',
+                          borderRadius: '50%',
+                          backgroundColor: 'var(--bg-card)',
+                          border: '1px solid var(--border-main)',
+                          color: 'var(--text-main)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          cursor: 'pointer',
+                          zIndex: 5,
+                          transition: 'var(--transition-fast)',
+                          boxShadow: 'var(--shadow-sm)'
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--teal-accent-light)'}
+                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--bg-card)'}
+                        aria-label="Next image"
+                      >
+                        <ChevronRight size={18} />
+                      </button>
+                    </>
+                  )}
+                </div>
 
-            <div className="gallery-dots-indicator">
-              <span className={`gdot-bullet ${currentSlide === 0 ? 'active' : ''}`} onClick={() => setSlide(0)}></span>
-              <span className={`gdot-bullet ${currentSlide === 1 ? 'active' : ''}`} onClick={() => setSlide(1)}></span>
-              <span className={`gdot-bullet ${currentSlide === 2 ? 'active' : ''}`} onClick={() => setSlide(2)}></span>
-            </div>
+                <div className="gallery-thumbs-row">
+                  {galleryImages.map((imgUrl, idx) => (
+                    <button 
+                      key={idx} 
+                      className={`gallery-thumb-item ${currentSlide === idx ? 'active' : ''}`} 
+                      onClick={() => setSlide(idx)}
+                      aria-label={`View image ${idx + 1}`}
+                      style={{ background: 'none', cursor: 'pointer' }}
+                    >
+                      <img 
+                        src={imgUrl} 
+                        alt={`Thumbnail ${idx + 1}`} 
+                        onError={(e) => {
+                          e.target.onerror = null;
+                          e.target.src = '/images/cat_medicines.png';
+                        }}
+                      />
+                    </button>
+                  ))}
+                </div>
+
+                {/* Carousel dots indicator if 3 or more images */}
+                {imageCount >= 3 && (
+                  <div className="gallery-dots-indicator">
+                    {galleryImages.map((_, idx) => (
+                      <span 
+                        key={idx} 
+                        className={`gdot-bullet ${currentSlide === idx ? 'active' : ''}`} 
+                        onClick={() => setSlide(idx)}
+                      />
+                    ))}
+                  </div>
+                )}
+              </>
+            )}
           </div>
 
           {/* Right Column: Info Section */}

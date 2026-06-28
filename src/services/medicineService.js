@@ -96,6 +96,21 @@ export const mapProduct = (p) => {
     ],
     image: p.image_url || '/images/cat_medicines.png',
     image_url: p.image_url || '/images/cat_medicines.png', // Direct mapping
+    images: (() => {
+      if (!p.image_url || p.image_url.trim() === '' || p.image_url === '/images/cat_medicines.png') {
+        return [];
+      }
+      const val = p.image_url.trim();
+      if (val.startsWith('[')) {
+        try {
+          const parsed = JSON.parse(val);
+          if (Array.isArray(parsed)) return parsed.filter(Boolean);
+        } catch (e) {
+          // ignore parsing error
+        }
+      }
+      return val.split(',').map(url => url.trim()).filter(Boolean);
+    })(),
     similar,
     boughtTogether,
     category: p.category
