@@ -70,5 +70,22 @@ All layout, responsive columns, header/navbar, mobile admin panel, customer draw
     10. [`CMS.jsx`](file:///c:/Users/a%20sai%20sathwik/Downloads/rocking/src/admin/pages/CMS.jsx) — Input placeholders for phone, WhatsApp, and emergency hotlines.
     11. [`cmsService.js`](file:///c:/Users/a%20sai%20sathwik/Downloads/rocking/src/services/cmsService.js) — Default pharmacist action button link.
 
+## Medicine Details Page Redesign
+* **Root Cause & Layout Audit:**
+  - The previous details page had detached fixed footer action buttons, hardcoded white container backgrounds (creating high contrast glitches in dark mode), broken similar medicine layout scrolls, and basic default button styling.
+* **Fixes & Redesign Implemented:**
+  - **Two-Column Responsive Grid:** Positioned the Image Gallery on the left (sticky column on desktop) and the Product Meta / Tab Information on the right inside [`MedicineDetails.jsx`](file:///c:/Users/a%20sai%20sathwik/Downloads/rocking/src/pages/MedicineDetails.jsx).
+  - **Inline Primary Checkout Actions:** Placed the quantity selector and Add to Cart / Reserve Now buttons directly underneath the product price stack inline within the right meta column, matching premium e-commerce expectations.
+  - **E-Commerce Style Recommendations:**
+    - **Frequently Bought Together:** Redesigned as individual responsive product cards listing image, name, brand, price, and individual add buttons, plus a dedicated "Bundle Summary Checkout Card" at the bottom showing selected item totals and bundle price.
+    - **Similar Medicines:** Styled as premium product cards identical to the main store page layout, incorporating category tags, Rx badges, hover scale actions, and inline cart additions.
+  - **Premium Dark-Mode styling:** Updated [`detail.css`](file:///c:/Users/a%20sai%20sathwik/Downloads/rocking/detail.css) to eliminate hardcoded white backgrounds in dark mode, opting for `var(--bg-card-sec)` and transparent tinted overlays.
+  - **Verification Images:**
+    - **Top Fold Redesign Grid:**
+      ![Top Fold Medicine Grid](/C:/Users/a%20sai%20sathwik/.gemini/antigravity-ide/brain/6afa076b-d33d-4846-b30d-4ed1717a2f27/top_fold_1782665103388.png)
+    - **Bottom Fold Recommendations:**
+      ![Bottom Fold Recommendations](/C:/Users/a%20sai%20sathwik/.gemini/antigravity-ide/brain/6afa076b-d33d-4846-b30d-4ed1717a2f27/bottom_fold_1782665197691.png)
+
+
 
 
