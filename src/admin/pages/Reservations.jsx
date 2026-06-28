@@ -442,7 +442,7 @@ const Reservations = () => {
       doc.setFont('Helvetica', 'normal');
       doc.setFontSize(9);
       doc.text('Licensed Pharmacy | Gachibowli, Hyderabad, Telangana', 38, 24);
-      doc.text('Phone: +91 98765 43210', 38, 28);
+      doc.text('Phone: +91 99891 48660', 38, 28);
       doc.setDrawColor(229, 231, 235);
       doc.setLineWidth(0.5);
       doc.line(15, 34, 195, 34);

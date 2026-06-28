@@ -401,12 +401,12 @@ const FloatingPharmacist = () => {
     const msg = encodeURIComponent(
       'Hello Sri Venkateshwara Medical Store, I need medicine guidance from a pharmacist.'
     );
-    window.open(`https://wa.me/919876543210?text=${msg}`, '_blank');
+    window.open(`https://wa.me/919989148660?text=${msg}`, '_blank');
   };
 
   const handleCallCta = () => {
     setIsOpen(false);
-    window.location.href = 'tel:+919876543210';
+    window.location.href = 'tel:+919989148660';
   };
 
   const handleUploadCta = () => {
@@ -913,7 +913,7 @@ const FloatingPharmacist = () => {
                 </span>
                 <span className="pharm-opt-text">
                   <span className="pharm-opt-title">Call Pharmacist</span>
-                  <span className="pharm-opt-sub">+91 98765 43210</span>
+                  <span className="pharm-opt-sub">+91 99891 48660</span>
                 </span>
                 <span className="pharm-opt-arrow">→</span>
               </button>

@@ -9,11 +9,11 @@ const StoreInfo = ({ config }) => {
   // Custom configuration fields with fallbacks to default values
   const storeName = settings.store_name || 'Sri Venkateswara Medical and General Store';
   const address = settings.address || '41/E, Bagh Lingampally Rd, Chikkadpally, New Nallakunta, Hyderabad, Telangana 500020';
-  const phone = settings.phone || '099497 99719';
+  const phone = settings.phone || '99891 48660';
   const hours = settings.hours || '9:00 AM - 10:00 PM (Open All Days)';
-  const whatsapp = settings.whatsapp || '+91 99497 99719';
+  const whatsapp = settings.whatsapp || '+91 99891 48660';
   const email = settings.email || 'support@svmspharmacy.com';
-  const emergency = settings.emergency || '+91 40 2345 6789 / +91 99497 99719';
+  const emergency = settings.emergency || '+91 99891 48660';
   const officialMapsUrl = settings.map_url || 'https://www.google.com/maps/place/SRI+VENKATESWARA+MEDICAL+AND+GENERAL+STORE/@17.4017429,78.4965845,21z/data=!4m6!3m5!1s0x3bcb99c0f2c51047:0x9c8b2ded81a7a43f!8m2!3d17.4017404!4d78.4966437!16s%2Fg%2F1pp2x7qrp';
   const mapEmbedUrl = settings.map_embed_url || 'https://maps.google.com/maps?q=SRI%20VENKATESWARA%20MEDICAL%20AND%20GENERAL%20STORE%20Chikkadpally%20Hyderabad&t=&z=15&ie=UTF8&iwloc=&output=embed';
   const storeImage = settings.store_image || '/images/store/storefront.png';

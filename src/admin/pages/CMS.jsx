@@ -1386,7 +1386,7 @@ const CMS = () => {
                     type="text" 
                     className="form-input" 
                     value={sectionForm.phone || ''}
-                    placeholder="099497 99719"
+                    placeholder="99891 48660"
                     onChange={e => setSectionForm(prev => ({ ...prev, phone: e.target.value }))}
                     style={{ width: '100%', height: 38, background: 'var(--bg-body)', border: '1px solid var(--border)', borderRadius: 8, padding: '0 8px', color: 'var(--text)', boxSizing: 'border-box' }}
                   />
@@ -1410,7 +1410,7 @@ const CMS = () => {
                     type="text" 
                     className="form-input" 
                     value={sectionForm.whatsapp || ''}
-                    placeholder="+91 99497 99719"
+                    placeholder="+91 99891 48660"
                     onChange={e => setSectionForm(prev => ({ ...prev, whatsapp: e.target.value }))}
                     style={{ width: '100%', height: 38, background: 'var(--bg-body)', border: '1px solid var(--border)', borderRadius: 8, padding: '0 8px', color: 'var(--text)', boxSizing: 'border-box' }}
                   />
@@ -1434,7 +1434,7 @@ const CMS = () => {
                     type="text" 
                     className="form-input" 
                     value={sectionForm.emergency || ''}
-                    placeholder="+91 40 2345 6789 / +91 99497 99719"
+                    placeholder="+91 99891 48660"
                     onChange={e => setSectionForm(prev => ({ ...prev, emergency: e.target.value }))}
                     style={{ width: '100%', height: 38, background: 'var(--bg-body)', border: '1px solid var(--border)', borderRadius: 8, padding: '0 8px', color: 'var(--text)', boxSizing: 'border-box' }}
                   />

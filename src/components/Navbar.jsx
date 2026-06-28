@@ -403,8 +403,8 @@ const Navbar = ({ showSearch = true, searchQuery, onSearchChange }) => {
         <div className="nb-ann-left">
           <span className="nb-ann-item nb-ann-hide-mobile">🛡️ 100% Genuine Medicines</span>
           <span className="nb-ann-sep nb-ann-hide-mobile">|</span>
-          <a href="tel:+919440025408" className="nb-ann-item nb-ann-phone">
-            📞 Support: +91 9440025408
+          <a href="tel:+919989148660" className="nb-ann-item nb-ann-phone">
+            📞 Support: +91 99891 48660
           </a>
         </div>
 
@@ -639,9 +639,9 @@ const Navbar = ({ showSearch = true, searchQuery, onSearchChange }) => {
             <Smartphone size={16} />
             <span>Download App</span>
           </button>
-          <a href="tel:+919440025408" className="nb-drawer-util-item">
+          <a href="tel:+919989148660" className="nb-drawer-util-item">
             <Phone size={16} />
-            <span>+91 9440025408</span>
+            <span>+91 99891 48660</span>
           </a>
         </div>
 

@@ -9,7 +9,7 @@ const FloatingWhatsApp = () => {
 
   const handleWhatsAppClick = () => {
     if (!requireOnline(ONLINE_REQUIRED_FEATURES.WHATSAPP_PHARMACIST)) return;
-    const phoneNumber = '919876543210';
+    const phoneNumber = '919989148660';
     const message = encodeURIComponent('Hello Sri Venkateshwara Medical Store, I need assistance with ordering medicines.');
     const url = `https://wa.me/${phoneNumber}?text=${message}`;
     

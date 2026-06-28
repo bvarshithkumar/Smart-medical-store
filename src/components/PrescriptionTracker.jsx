@@ -193,7 +193,7 @@ const PrescriptionTracker = () => {
     ? {
         title: 'Prescription Rejected',
         badge: 'REJECTED',
-        detailedStatus: prescription.admin_notes || 'Your prescription requires clarification. Please contact Gachibowli store at +91 98765 43210.',
+        detailedStatus: prescription.admin_notes || 'Your prescription requires clarification. Please contact Gachibowli store at +91 99891 48660.',
         eta: 'Clarification Required',
         actionText: 'Contact Store'
       }
@@ -369,7 +369,7 @@ const PrescriptionTracker = () => {
                 "{prescription.admin_notes || 'No specific reason provided. Please contact store.'}"
               </div>
               <div style={{ marginTop: '12px', display: 'flex', gap: '12px' }}>
-                <a href="tel:+919876543210" style={{
+                <a href="tel:+919989148660" style={{
                   padding: '8px 16px',
                   background: '#ef4444',
                   color: 'white',
@@ -378,7 +378,7 @@ const PrescriptionTracker = () => {
                   fontWeight: 700,
                   textDecoration: 'none'
                 }}>
-                  Call +91 98765 43210
+                  Call +91 99891 48660
                 </a>
               </div>
             </div>

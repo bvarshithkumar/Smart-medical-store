@@ -57,7 +57,7 @@ const Footer = () => {
             <strong>Address:</strong> Gachibowli, Hyderabad, TS, 500032
           </p>
           <p className="footer-contact-info">
-            <strong>Phone:</strong> +91 98765 43210
+            <strong>Phone:</strong> +91 99891 48660
           </p>
           <p className="footer-contact-info">
             <strong>Email:</strong> contact@svmspharmacy.com

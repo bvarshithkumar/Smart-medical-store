@@ -236,7 +236,7 @@ const Confirmation = () => {
       doc.setFont('Helvetica', 'normal');
       doc.setFontSize(9);
       doc.text('Licensed Pharmacy | Gachibowli, Hyderabad, Telangana', 38, 24);
-      doc.text('Phone: +91 98765 43210 | GSTIN: 36AAAAA1111A1Z1', 38, 28);
+      doc.text('Phone: +91 99891 48660 | GSTIN: 36AAAAA1111A1Z1', 38, 28);
 
       // Divider Line
       doc.setDrawColor(229, 231, 235);

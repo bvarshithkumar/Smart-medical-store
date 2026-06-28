@@ -197,7 +197,7 @@ const DEFAULT_PHARMACIST_INFO = [
     description: 'Speak directly with our registered pharmacist regarding medicines, dosage, and prescription clarification.',
     image_url: '/images/rx_hero_pharmacist.png',
     button_text: 'Call Now',
-    button_link: 'tel:+919876543210'
+    button_link: 'tel:+919989148660'
   }
 ];
 

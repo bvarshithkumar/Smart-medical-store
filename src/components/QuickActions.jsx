@@ -112,7 +112,7 @@ const QuickActions = ({ config }) => {
     if (!requireOnline(ONLINE_REQUIRED_FEATURES.WHATSAPP_PHARMACIST)) return;
     setIsPharmacistModalOpen(false);
     const msg = encodeURIComponent('Hello Sri Venkateshwara Medical Store, I have a medicine-related query.');
-    window.open(`https://wa.me/919876543210?text=${msg}`, '_blank');
+    window.open(`https://wa.me/919989148660?text=${msg}`, '_blank');
   };
 
   const handleUploadCta = () => {
@@ -227,7 +227,7 @@ const QuickActions = ({ config }) => {
                   <h4 className="option-title">Call Pharmacist</h4>
                   <p className="option-desc">Speak directly with our registered pharmacist.</p>
                 </div>
-                <a href="tel:+919876543210" className="option-action-btn call-btn-accent">
+                <a href="tel:+919989148660" className="option-action-btn call-btn-accent">
                   Call Now
                 </a>
               </div>
