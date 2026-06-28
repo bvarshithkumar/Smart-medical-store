@@ -11,9 +11,9 @@ import {
 import { supabase } from '../../lib/supabase';
 
 /* ─── Helpers ─────────────────────────────────────────────────── */
-const fmt = (d) => d ? new Date(d).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
+const fmt = (d) => d ? new Date(d).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : 'Not Set';
 const fmtTime = (d) => d ? new Date(d).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' }) : '';
-const fmtDateTime = (d) => d ? `${fmt(d)}, ${fmtTime(d)}` : '—';
+const fmtDateTime = (d) => d ? `${fmt(d)}, ${fmtTime(d)}` : 'Pending';
 
 /* ─── Customer Type Classification ───────────────────────────── */
 const CUSTOMER_TYPES = {
@@ -142,6 +142,112 @@ const STATUS_COLORS = {
 const statusStyle = (s) => {
   const key = (s || '').toLowerCase();
   return STATUS_COLORS[key] || { bg: 'rgba(148,163,184,0.15)', color: '#94a3b8', label: s || 'Unknown' };
+};
+
+const renderPrescriptionRef = (prescription, reservation, order) => {
+  if (reservation?.prescription_id) {
+    if (prescription) {
+      if (!prescription.image_url && !prescription.file_url) {
+        return (
+          <span className="badge badge-pending" style={{ fontSize: 11, fontWeight: 700, padding: '3px 8px', borderRadius: 12 }}>
+            ⚠️ Pending Upload
+          </span>
+        );
+      }
+      return (
+        <span style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
+          {prescription.reference_id || `Rx-${prescription.id.slice(0, 8)}`}
+        </span>
+      );
+    } else {
+      return (
+        <span className="badge badge-pending" style={{ fontSize: 11, fontWeight: 700, padding: '3px 8px', borderRadius: 12 }}>
+          ⚠️ Pending Upload
+        </span>
+      );
+    }
+  } else {
+    const hasMeds = (reservation?.medicines && Array.isArray(reservation.medicines) && reservation.medicines.length > 0) || 
+                    (order?.medicines && order.medicines.length > 0);
+    if (hasMeds) {
+      return (
+        <span className="badge" style={{ fontSize: 11, fontWeight: 600, padding: '3px 8px', borderRadius: 12, background: 'rgba(148, 163, 184, 0.15)', color: '#94a3b8' }}>
+          OTC Order
+        </span>
+      );
+    } else {
+      return (
+        <span className="badge" style={{ fontSize: 11, fontWeight: 600, padding: '3px 8px', borderRadius: 12, background: 'rgba(148, 163, 184, 0.15)', color: '#94a3b8' }}>
+          Not Required
+        </span>
+      );
+    }
+  }
+};
+
+const renderQuoteNumber = (quote) => {
+  if (quote?.quote_number) {
+    if (quote.quote_pdf_url) {
+      return (
+        <a 
+          href={quote.quote_pdf_url} 
+          target="_blank" 
+          rel="noreferrer" 
+          className="badge" 
+          style={{ 
+            fontSize: 11, 
+            fontWeight: 700, 
+            padding: '3px 8px', 
+            borderRadius: 12, 
+            background: 'rgba(6, 182, 212, 0.15)', 
+            color: '#06b6d4', 
+            textDecoration: 'none',
+            border: '1px solid rgba(6, 182, 212, 0.3)',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: 4,
+            cursor: 'pointer',
+            transition: 'all 0.2s'
+          }}
+          title="Click to view Quotation PDF"
+        >
+          📄 {quote.quote_number}
+        </a>
+      );
+    } else {
+      return (
+        <span 
+          className="badge" 
+          style={{ 
+            fontSize: 11, 
+            fontWeight: 600, 
+            padding: '3px 8px', 
+            borderRadius: 12, 
+            background: 'rgba(148, 163, 184, 0.15)', 
+            color: '#94a3b8' 
+          }}
+        >
+          {quote.quote_number}
+        </span>
+      );
+    }
+  } else {
+    return (
+      <span 
+        className="badge" 
+        style={{ 
+          fontSize: 11, 
+          fontWeight: 600, 
+          padding: '3px 8px', 
+          borderRadius: 12, 
+          background: 'rgba(245, 158, 11, 0.15)', 
+          color: '#f59e0b' 
+        }}
+      >
+        Pending Quote
+      </span>
+    );
+  }
 };
 
 const TIMELINE_STEPS = [
@@ -317,9 +423,9 @@ const OrderDetailPanel = ({ order }) => {
             { label: 'Reservation ID', value: reservation.reservation_id || reservation.id },
             { label: 'Status', value: <span style={{ padding: '3px 10px', borderRadius: 20, background: ss.bg, color: ss.color, fontSize: 12, fontWeight: 600 }}>{ss.label}</span> },
             { label: 'Pickup Date', value: fmt(reservation.pickup_date) },
-            { label: 'Pickup Time', value: reservation.pickup_time || '—' },
+            { label: 'Pickup Time', value: reservation.pickup_time || 'Not Scheduled' },
             { label: 'Created At', value: fmtDateTime(reservation.created_at) },
-            { label: 'Collected At', value: fmtDateTime(reservation.collected_at) },
+            { label: 'Collected At', value: reservation.collected_at ? fmtDateTime(reservation.collected_at) : 'Not Collected' },
           ].map(r => (
             <div key={r.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', borderBottom: '1px solid var(--border-light, rgba(255,255,255,0.05))' }}>
               <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>{r.label}</span>
@@ -332,12 +438,12 @@ const OrderDetailPanel = ({ order }) => {
         <div style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', borderRadius: 12, padding: 16 }}>
           <p style={{ fontSize: 11, fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 12 }}>Quotation & Payment</p>
           {[
-            { label: 'Quote Number', value: quote?.quote_number || '—' },
-            { label: 'Quote Status', value: quote?.status || '—' },
-            { label: 'Quote Amount', value: quote ? `₹${Number(quote.total_amount).toLocaleString('en-IN')}` : '—' },
-            { label: 'Total Amount', value: reservation.total_amount ? `₹${Number(reservation.total_amount).toLocaleString('en-IN')}` : '—' },
-            { label: 'Prescription Ref', value: prescription?.reference_id || '—' },
-            { label: 'Collected By', value: reservation.collected_by || '—' },
+            { label: 'Quote Number', value: renderQuoteNumber(quote) },
+            { label: 'Quote Status', value: quote?.status || 'Pending Generation' },
+            { label: 'Quote Amount', value: quote ? `₹${Number(quote.total_amount).toLocaleString('en-IN')}` : 'Pending' },
+            { label: 'Total Amount', value: reservation.total_amount ? `₹${Number(reservation.total_amount).toLocaleString('en-IN')}` : 'Pending' },
+            { label: 'Prescription Ref', value: renderPrescriptionRef(prescription, reservation, order) },
+            { label: 'Collected By', value: reservation.collected_by || 'Not Collected' },
           ].map(r => (
             <div key={r.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0', borderBottom: '1px solid var(--border-light, rgba(255,255,255,0.05))' }}>
               <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>{r.label}</span>
@@ -842,19 +948,19 @@ const CustomerCRMModal = ({ customer, onClose, onDeactivate, onDelete }) => {
                           </div>
                         </div>
 
-                        <div style={{ flex: 1, display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, fontSize: 12 }}>
+                        <div style={{ flex: 1, display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, fontSize: 12, alignItems: 'center' }}>
                           <div>
-                            <div style={{ color: 'var(--text-muted)', fontSize: 10, marginBottom: 2 }}>Prescription Ref</div>
-                            <div style={{ fontWeight: 600 }}>{prescription?.reference_id || '—'}</div>
+                            <div style={{ color: 'var(--text-muted)', fontSize: 10, marginBottom: 4 }}>Prescription Ref</div>
+                            <div style={{ display: 'inline-flex' }}>{renderPrescriptionRef(prescription, reservation, order)}</div>
                           </div>
                           <div>
-                            <div style={{ color: 'var(--text-muted)', fontSize: 10, marginBottom: 2 }}>Quote No</div>
-                            <div style={{ fontWeight: 600 }}>{quote?.quote_number || '—'}</div>
+                            <div style={{ color: 'var(--text-muted)', fontSize: 10, marginBottom: 4 }}>Quote No</div>
+                            <div style={{ display: 'inline-flex' }}>{renderQuoteNumber(quote)}</div>
                           </div>
                           <div>
-                            <div style={{ color: 'var(--text-muted)', fontSize: 10, marginBottom: 2 }}>Amount</div>
+                            <div style={{ color: 'var(--text-muted)', fontSize: 10, marginBottom: 4 }}>Amount</div>
                             <div style={{ fontWeight: 700, color: 'var(--text-primary)' }}>
-                              {reservation.total_amount ? `₹${Number(reservation.total_amount).toLocaleString('en-IN')}` : '—'}
+                              {reservation.total_amount ? `₹${Number(reservation.total_amount).toLocaleString('en-IN')}` : 'Pending'}
                             </div>
                           </div>
                         </div>
