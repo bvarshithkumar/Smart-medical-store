@@ -104,46 +104,85 @@ const SearchBar = ({ query: externalQuery, onChange: onExternalChange }) => {
                 Suggested Medicines
               </div>
               <div className="suggestions-list">
-                {suggestions.map((med) => (
-                  <div
-                    key={med.id}
-                    className="suggestion-item"
-                    onClick={() => handleSuggestionClick(med.id)}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '12px',
-                      padding: '12px 14px',
-                      cursor: 'pointer',
-                      borderBottom: '1px solid var(--border-color)',
-                      transition: 'background-color 0.2s'
-                    }}
-                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--bg-light)'}
-                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                  >
-                    <div 
-                      className="suggestion-icon-wrap" 
-                      style={{ 
-                        width: '32px', 
-                        height: '32px', 
-                        backgroundColor: 'var(--primary-blue-light)', 
-                        borderRadius: '8px', 
-                        display: 'flex', 
-                        alignItems: 'center', 
-                        justifyContent: 'center',
-                        padding: '2px'
+                {suggestions.map((med) => {
+                  // Log the image_url for every search result to audit output
+                  console.log('[Search] Found result:', med.name, 'image_url:', med.image_url);
+
+                  return (
+                    <div
+                      key={med.id}
+                      className="suggestion-item"
+                      onClick={() => handleSuggestionClick(med.id)}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '12px',
+                        padding: '12px 14px',
+                        cursor: 'pointer',
+                        borderBottom: '1px solid var(--border-color)',
+                        transition: 'background-color 0.2s'
                       }}
-                      dangerouslySetInnerHTML={{ __html: med.svg || med.svgColor1 }}
-                    />
-                    <div>
-                      <div className="suggestion-text" style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-primary)' }}>{med.name}</div>
-                      <div style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>{med.brand} · {med.packInfo}</div>
+                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--bg-light)'}
+                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                    >
+                      <div 
+                        className="suggestion-img-wrap" 
+                        style={{ 
+                          width: '40px', 
+                          height: '40px', 
+                          backgroundColor: 'rgba(255, 255, 255, 0.03)', 
+                          borderRadius: '8px', 
+                          display: 'flex', 
+                          alignItems: 'center', 
+                          justifyContent: 'center',
+                          padding: '2px',
+                          border: '1px solid var(--border-color)',
+                          overflow: 'hidden',
+                          flexShrink: 0
+                        }}
+                      >
+                        <img 
+                          src={med.image_url} 
+                          alt={med.name} 
+                          style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                          onError={(e) => {
+                            // Fallback to professional medicine placeholder on error
+                            e.target.onerror = null;
+                            e.target.src = '/images/cat_medicines.png';
+                          }}
+                        />
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                          <span className="suggestion-text" style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '240px' }}>
+                            {med.name}
+                          </span>
+                          {med.prescriptionRequired && (
+                            <span 
+                              style={{ 
+                                fontSize: '9px', 
+                                backgroundColor: 'rgba(239, 68, 68, 0.1)', 
+                                color: '#f87171', 
+                                border: '1px solid rgba(239, 68, 68, 0.2)', 
+                                padding: '1px 5px', 
+                                borderRadius: '4px', 
+                                fontWeight: 700 
+                              }}
+                            >
+                              Rx Required
+                            </span>
+                          )}
+                        </div>
+                        <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '2px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                          {med.brand} · {med.packInfo || 'Pack of 15'}
+                        </div>
+                      </div>
+                      <div style={{ marginLeft: 'auto', fontSize: '13px', fontWeight: 700, color: 'var(--teal-accent)', flexShrink: 0 }}>
+                        ₹{med.priceDiscounted.toFixed(2)}
+                      </div>
                     </div>
-                    <div style={{ marginLeft: 'auto', fontSize: '13px', fontWeight: 700, color: 'var(--teal-accent)' }}>
-                      ₹{med.priceDiscounted.toFixed(2)}
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </>
           ) : (
