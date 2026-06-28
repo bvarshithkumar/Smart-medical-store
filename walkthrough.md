@@ -142,6 +142,18 @@ All layout, responsive columns, header/navbar, mobile admin panel, customer draw
   - **Light Mode MRP Verified:**
     ![Light Mode Spacing and Strike-off](/C:/Users/a%20sai%20sathwik/.gemini/antigravity-ide/brain/6afa076b-d33d-4846-b30d-4ed1717a2f27/light_mode_mrp_verified_1782672487873.png)
 
+## Dynamic CMS Editing for "Health Concerns" & "Why Choose Us"
+* **Issue Identified:**
+  - The "Shop by Health Concern" and "Why Choose Sri Venkateshwara Medical Store?" sections were completely hardcoded inside their respective React components. 
+  - There was no database backing or edit form mappings inside the admin CMS, preventing updates to names, descriptions, icons, or images.
+* **Fix & Solution Implemented:**
+  - **Database Migration:** Created [**`add_dynamic_sections_tables.sql`**](file:///c:/Users/a%20sai%20sathwik/Downloads/rocking/add_dynamic_sections_tables.sql) to define `cms_health_concerns` and `cms_why_choose_us` tables, enabling public SELECT and authenticated admin write capabilities (RLS). 
+  - **Auto-Seeding:** Configured the migration file to automatically truncate and seed high-fidelity original items with custom images and Lucide icon mappings.
+  - **CMS.jsx Overhaul:** Modified [`CMS.jsx`](file:///c:/Users/a%20sai%20sathwik/Downloads/rocking/src/admin/pages/CMS.jsx) tabs list to map the sections to these new database tables and added detailed add/edit form schemas inside `getFieldsConfig`.
+  - **Dynamic Frontend Fetching:** Reworked [`HealthConcerns.jsx`](file:///c:/Users/a%20sai%20sathwik/Downloads/rocking/src/components/HealthConcerns.jsx) and [`WhyChooseUs.jsx`](file:///c:/Users/a%20sai%20sathwik/Downloads/rocking/src/components/WhyChooseUs.jsx) to query the database using [`cmsService.js`](file:///c:/Users/a%20sai%20sathwik/Downloads/rocking/src/services/cmsService.js).
+  - **Robust Fallback:** If the database query encounters an error (e.g. before the migration is executed on the database), the components automatically fall back to hardcoded high-fidelity values, ensuring zero downtime or rendering issues.
+
+
 
 
 
