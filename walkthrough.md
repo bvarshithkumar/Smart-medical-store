@@ -54,4 +54,21 @@ All layout, responsive columns, header/navbar, mobile admin panel, customer draw
   - **Prescription Badging:** Added a styled red/amber `"Rx Required"` badge that displays next to the medicine name if `med.prescriptionRequired` evaluates to true.
   - **Pack Size and Brand Layout:** Enhanced information typography to list the brand, pack size (`med.packInfo`), discounted price (`₹{med.priceDiscounted.toFixed(2)}`), and thumbnail consistently.
 
+## Contact Support Phone Number Update
+* **Changes Implemented:**
+  - Replaced all mock/old contact support, WhatsApp, and pharmacist hotline numbers across the storefront and admin panels with the specified phone number: `9989148660`.
+  - Updated files:
+    1. [`Navbar.jsx`](file:///c:/Users/a%20sai%20sathwik/Downloads/rocking/src/components/Navbar.jsx) — Announcement bar support tel link and mobile drawer extras.
+    2. [`Footer.jsx`](file:///c:/Users/a%20sai%20sathwik/Downloads/rocking/src/components/Footer.jsx) — Contact Us section.
+    3. [`FloatingWhatsApp.jsx`](file:///c:/Users/a%20sai%20sathwik/Downloads/rocking/src/components/FloatingWhatsApp.jsx) — Floating WhatsApp chat widget destination.
+    4. [`QuickActions.jsx`](file:///c:/Users/a%20sai%20sathwik/Downloads/rocking/src/components/QuickActions.jsx) — Call Pharmacist modal CTAs.
+    5. [`FloatingPharmacist.jsx`](file:///c:/Users/a%20sai%20sathwik/Downloads/rocking/src/components/FloatingPharmacist.jsx) — Expandable quick chat contact numbers.
+    6. [`PrescriptionTracker.jsx`](file:///c:/Users/a%20sai%20sathwik/Downloads/rocking/src/components/PrescriptionTracker.jsx) — Call action buttons and rejection notice helpers.
+    7. [`StoreInfo.jsx`](file:///c:/Users/a%20sai%20sathwik/Downloads/rocking/src/components/StoreInfo.jsx) — Fallback defaults for store phone, WhatsApp, and emergency hotline.
+    8. [`Confirmation.jsx`](file:///c:/Users/a%20sai%20sathwik/Downloads/rocking/src/pages/Confirmation.jsx) — Generated PDF invoice headers.
+    9. [`Reservations.jsx`](file:///c:/Users/a%20sai%20sathwik/Downloads/rocking/src/admin/pages/Reservations.jsx) — Admin reservation receipt headers.
+    10. [`CMS.jsx`](file:///c:/Users/a%20sai%20sathwik/Downloads/rocking/src/admin/pages/CMS.jsx) — Input placeholders for phone, WhatsApp, and emergency hotlines.
+    11. [`cmsService.js`](file:///c:/Users/a%20sai%20sathwik/Downloads/rocking/src/services/cmsService.js) — Default pharmacist action button link.
+
+
 
