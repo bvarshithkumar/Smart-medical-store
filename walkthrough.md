@@ -153,6 +153,15 @@ All layout, responsive columns, header/navbar, mobile admin panel, customer draw
   - **Dynamic Frontend Fetching:** Reworked [`HealthConcerns.jsx`](file:///c:/Users/a%20sai%20sathwik/Downloads/rocking/src/components/HealthConcerns.jsx) and [`WhyChooseUs.jsx`](file:///c:/Users/a%20sai%20sathwik/Downloads/rocking/src/components/WhyChooseUs.jsx) to query the database using [`cmsService.js`](file:///c:/Users/a%20sai%20sathwik/Downloads/rocking/src/services/cmsService.js).
   - **Robust Fallback:** If the database query encounters an error (e.g. before the migration is executed on the database), the components automatically fall back to hardcoded high-fidelity values, ensuring zero downtime or rendering issues.
 
+## CMS "Core Trust Pillars" Tab Usability Renaming
+* **Issue Identified:**
+  - The "Why Choose Sri Venkateshwara Medical Store?" section was mapped in the admin CMS sidebar under the name **"Core Trust Pillars"**.
+  - This naming mismatch made it hard for the admin to locate and identify where they could edit this section's items (including card text, badges, and image uploads).
+* **Fix & Solution Implemented:**
+  - **Tab Rename:** Renamed the tab in [`CMS.jsx`](file:///c:/Users/a%20sai%20sathwik/Downloads/rocking/src/admin/pages/CMS.jsx) from `'Core Trust Pillars'` to `'Why Choose Us'`.
+  - **Result:** The admin can now locate and edit the cards (Genuine Medicines, Expert Pharmacists, etc.) under the **Why Choose Us** tab in the sidebar, which successfully processes files and saves them to the `cms_why_choose_us` database table.
+
+
 
 
 
