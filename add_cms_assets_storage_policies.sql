@@ -29,24 +29,22 @@ CREATE POLICY "cms_assets_public_select" ON storage.objects
   FOR SELECT TO public
   USING (bucket_id = 'cms-assets');
 
--- Policy B: Allow authenticated admin users to insert product images (path starting with products/)
+-- Policy B: Allow authenticated admin users to insert any objects inside cms-assets bucket (products, quick actions, carousel, etc.)
 CREATE POLICY "cms_assets_admin_insert" ON storage.objects
   FOR INSERT TO authenticated
   WITH CHECK (
     bucket_id = 'cms-assets'
-    AND name LIKE 'products/%'
     AND EXISTS (
       SELECT 1 FROM public.profiles
       WHERE profiles.id = auth.uid() AND profiles.role = 'admin'
     )
   );
 
--- Policy C: Allow authenticated admin users to update product images (path starting with products/)
+-- Policy C: Allow authenticated admin users to update any objects inside cms-assets bucket
 CREATE POLICY "cms_assets_admin_update" ON storage.objects
   FOR UPDATE TO authenticated
   USING (
     bucket_id = 'cms-assets'
-    AND name LIKE 'products/%'
     AND EXISTS (
       SELECT 1 FROM public.profiles
       WHERE profiles.id = auth.uid() AND profiles.role = 'admin'
@@ -54,19 +52,17 @@ CREATE POLICY "cms_assets_admin_update" ON storage.objects
   )
   WITH CHECK (
     bucket_id = 'cms-assets'
-    AND name LIKE 'products/%'
     AND EXISTS (
       SELECT 1 FROM public.profiles
       WHERE profiles.id = auth.uid() AND profiles.role = 'admin'
     )
   );
 
--- Policy D: Allow authenticated admin users to delete product images (path starting with products/)
+-- Policy D: Allow authenticated admin users to delete any objects inside cms-assets bucket
 CREATE POLICY "cms_assets_admin_delete" ON storage.objects
   FOR DELETE TO authenticated
   USING (
     bucket_id = 'cms-assets'
-    AND name LIKE 'products/%'
     AND EXISTS (
       SELECT 1 FROM public.profiles
       WHERE profiles.id = auth.uid() AND profiles.role = 'admin'
