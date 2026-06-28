@@ -105,6 +105,15 @@ All layout, responsive columns, header/navbar, mobile admin panel, customer draw
   - **Single Image Centered Gallery:**
     ![Zincovit Single Image Centered](/C:/Users/a%20sai%20sathwik/.gemini/antigravity-ide/brain/6afa076b-d33d-4846-b30d-4ed1717a2f27/zincovit_gallery_1782666094423.png)
 
+## CMS Storage Bucket Uploads Policy Update
+* **Issue Identified:**
+  - Standard CMS image uploads (e.g. Quick Action background images, Carousel banners) fail with `new row violates row-level security policy` on the `cms-assets` bucket.
+  - The previous RLS policy restricted storage writes (`INSERT`/`UPDATE`/`DELETE`) strictly to paths starting with `products/%`.
+* **Fix & Solution Implemented:**
+  - **Lifting Path Constraints:** Overwrote [`add_cms_assets_storage_policies.sql`](file:///c:/Users/a%20sai%20sathwik/Downloads/rocking/add_cms_assets_storage_policies.sql) to remove the path restriction (`name LIKE 'products/%'`) for authenticated admin users, permitting them to manage any assets under folders like `general/`, `carousel/`, or `quick-actions/` in the `cms-assets` bucket.
+  - **Action Required:** The live database RLS settings need to be updated. Please copy the SQL statements inside `add_cms_assets_storage_policies.sql` and run them inside your Supabase Dashboard's SQL Editor.
+
+
 
 
 
