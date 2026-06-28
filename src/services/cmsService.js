@@ -220,6 +220,24 @@ const DEFAULT_BRANDS = [
   { id: 'B7', name: 'Pfizer', badge: 'Global Trusted Brand', color: '#00A3E0', box_name: 'Zithromax', box_sub: '250 mg Tablets', pack_class: 'pfizer-zithro', pills_colors: ['#ffffff', '#ffffff', '#ffffff', '#ffffff', '#ffffff', '#ffffff'] }
 ];
 
+const DEFAULT_HEALTH_CONCERNS = [
+  { id: 1, name: 'Diabetes Care', description: 'Sugar monitors & care', image_url: '/images/concern_diabetes.png', icon_color: '#EF4444', icon_bg: 'rgba(239, 68, 68, 0.12)', icon_name: 'Droplet', display_order: 10, is_active: true },
+  { id: 2, name: 'Cardiac Health', description: 'Blood pressure & heart', image_url: '/images/concern_cardiac.png', icon_color: '#EC4899', icon_bg: 'rgba(236, 72, 153, 0.12)', icon_name: 'Heart', display_order: 20, is_active: true },
+  { id: 3, name: 'Pain Relief', description: 'Joints, muscles & bones', image_url: '/images/concern_pain.png', icon_color: '#F97316', icon_bg: 'rgba(249, 115, 22, 0.12)', icon_name: 'Zap', display_order: 30, is_active: true },
+  { id: 4, name: 'Stomach Care', description: 'Digestion & acidity', image_url: '/images/concern_stomach.png', icon_color: '#8B5CF6', icon_bg: 'rgba(139, 92, 246, 0.12)', icon_name: 'Activity', display_order: 40, is_active: true },
+  { id: 5, name: 'Vitamins & Immunity', description: 'Daily nutrition & energy', image_url: '/images/concern_vitamins.png', icon_color: '#10B981', icon_bg: 'rgba(16, 185, 129, 0.12)', icon_name: 'Shield', display_order: 50, is_active: true },
+  { id: 6, name: 'Skin & Hair', description: 'Acne, dry skin & hairfall', image_url: '/images/concern_skin.png', icon_color: '#06B6D4', icon_bg: 'rgba(6, 182, 212, 0.12)', icon_name: 'Sparkles', display_order: 60, is_active: true }
+];
+
+const DEFAULT_WHY_CHOOSE_US = [
+  { id: 1, title: 'Genuine Medicines', description: '100% genuine prescription drugs and OTC products sourced directly from authorized brand distributors.', image_url: '/images/trust_medicines.png', icon_color: '#0EA5A4', icon_bg: 'rgba(14, 165, 164, 0.12)', icon_border: 'rgba(14, 165, 164, 0.25)', icon_name: 'ShieldAlert', badge_text: '', display_order: 10, is_active: true },
+  { id: 2, title: 'Expert Pharmacists', description: 'Licensed registered pharmacists available on-site and via consultation to verify your dosage and safety.', image_url: '/images/trust_pharmacy.png', icon_color: '#00A884', icon_bg: 'rgba(0, 168, 132, 0.12)', icon_border: 'rgba(0, 168, 132, 0.25)', icon_name: 'Award', badge_text: '', display_order: 20, is_active: true },
+  { id: 3, title: 'Easy Prescription Upload', description: 'Upload prescription documents in a single click on our web app or WhatsApp for immediate pharmacist check.', image_url: '/images/trust_support.png', icon_color: '#7c3aed', icon_bg: 'rgba(124, 58, 237, 0.12)', icon_border: 'rgba(124, 58, 237, 0.25)', icon_name: 'FileText', badge_text: '', display_order: 30, is_active: true },
+  { id: 4, title: 'Fast Pickup', description: 'Skip the queues and secure your ready medicines in a quick 15-minute scheduled store collection window.', image_url: '/images/trust_delivery.png', icon_color: '#ea580c', icon_bg: 'rgba(234, 88, 12, 0.12)', icon_border: 'rgba(234, 88, 12, 0.25)', icon_name: 'Clock', badge_text: '', display_order: 40, is_active: true },
+  { id: 5, title: 'Trusted Since 2010', description: 'A family-first neighborhood pharmacy serving Chikkadpally & Gachibowli with healthcare integrity for 16 years.', image_url: '/images/trust_payments.png', icon_color: '#3b82f6', icon_bg: 'rgba(59, 130, 246, 0.12)', icon_border: 'rgba(59, 130, 246, 0.25)', icon_name: 'Calendar', badge_text: '16 Yrs', display_order: 50, is_active: true },
+  { id: 6, title: 'Excellent Support', description: 'Get prompt support, order updates, and advice from our pharmacist hotlines and direct WhatsApp channels.', image_url: '/images/trust_support.png', icon_color: '#06b6d4', icon_bg: 'rgba(6, 182, 212, 0.12)', icon_border: 'rgba(6, 182, 212, 0.25)', icon_name: 'MessageSquare', badge_text: '', display_order: 60, is_active: true }
+];
+
 // Helper to query and sort table
 async function queryCMSTable(tableName, defaultData) {
   try {
@@ -278,6 +296,14 @@ export const cmsService = {
 
   getBrands: async () => {
     return queryCMSTable('cms_brands', DEFAULT_BRANDS);
+  },
+
+  getHealthConcerns: async () => {
+    return queryCMSTable('cms_health_concerns', DEFAULT_HEALTH_CONCERNS);
+  },
+
+  getWhyChooseUs: async () => {
+    return queryCMSTable('cms_why_choose_us', DEFAULT_WHY_CHOOSE_US);
   },
 
   getBanner: async (key) => {

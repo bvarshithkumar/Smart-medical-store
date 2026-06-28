@@ -16,10 +16,10 @@ const CMS_TABS = [
   { name: 'Popular Medicines', table: null, folder: null },
   { name: 'Offers', table: 'cms_offers', folder: 'offers' },
   { name: 'Wellness Essentials', table: 'homepage_featured_products_items', folder: 'wellness' },
-  { name: 'Shop by Health Concern', table: null, folder: null },
+  { name: 'Shop by Health Concern', table: 'cms_health_concerns', folder: 'health-concerns' },
   { name: 'Banners', table: 'cms_banners', folder: 'banners' },
   { name: 'Prescription Tracker', table: null, folder: null },
-  { name: 'Core Trust Pillars', table: null, folder: null },
+  { name: 'Core Trust Pillars', table: 'cms_why_choose_us', folder: 'trust-pillars' },
   { name: 'Brands', table: 'cms_brands', folder: 'brands' },
   { name: 'Pickup Workflow', table: null, folder: null },
   { name: 'Testimonials', table: 'cms_testimonials', folder: 'testimonials' },
@@ -676,6 +676,28 @@ const CMS = () => {
           { label: 'Brand Theme Color', key: 'color', type: 'text' },
           { label: 'Raw Logo SVG', key: 'logo_svg', type: 'textarea' },
           { label: 'Logo Image File (fallback if SVG not provided)', key: 'image_url', type: 'file' },
+          ...defaultFields
+        ];
+      case 'cms_health_concerns':
+        return [
+          { label: 'Concern Name (e.g. Diabetes Care)', key: 'name', type: 'text', required: true },
+          { label: 'Description/Subtext', key: 'description', type: 'text' },
+          { label: 'Lucide Icon Name (e.g. Droplet, Heart, Zap, Activity, Shield, Sparkles)', key: 'icon_name', type: 'text' },
+          { label: 'Icon Color Hex (e.g. #EF4444)', key: 'icon_color', type: 'text' },
+          { label: 'Icon BG Color (e.g. rgba(239,68,68,0.12))', key: 'icon_bg', type: 'text' },
+          { label: 'Concern Image', key: 'image_url', type: 'file' },
+          ...defaultFields
+        ];
+      case 'cms_why_choose_us':
+        return [
+          { label: 'Title (e.g. Expert Pharmacists)', key: 'title', type: 'text', required: true },
+          { label: 'Detailed Description', key: 'description', type: 'textarea', required: true },
+          { label: 'Lucide Icon Name (e.g. ShieldAlert, Award, FileText, Clock, Calendar, MessageSquare)', key: 'icon_name', type: 'text' },
+          { label: 'Icon Color Hex (e.g. #00A884)', key: 'icon_color', type: 'text' },
+          { label: 'Icon BG Style (e.g. rgba(0,168,132,0.12))', key: 'icon_bg', type: 'text' },
+          { label: 'Icon Border Color (e.g. rgba(0,168,132,0.25))', key: 'icon_border', type: 'text' },
+          { label: 'Floating Badge Text (e.g. 16 Yrs - Optional)', key: 'badge_text', type: 'text' },
+          { label: 'Pillar Image', key: 'image_url', type: 'file' },
           ...defaultFields
         ];
       default:
