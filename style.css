@@ -9904,6 +9904,26 @@ footer,
   overflow: hidden !important;
 }
 
+.price-stack {
+  display: flex !important;
+  align-items: baseline !important;
+  gap: 8px !important;
+  flex-wrap: wrap !important;
+}
+
+.new-price {
+  font-size: 16px !important;
+  font-weight: 800 !important;
+  color: var(--text-main) !important;
+}
+
+.old-price {
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  color: var(--text-light) !important;
+  text-decoration: line-through !important;
+}
+
 .wellness-footer-row {
   display: flex !important;
   justify-content: space-between !important;
