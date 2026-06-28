@@ -33,6 +33,7 @@ import LiveTrustBar from '../components/LiveTrustBar';
 import AboutUs from '../components/AboutUs';
 
 import { cmsService } from '../services/cmsService';
+import ErrorBoundary from '../components/ErrorBoundary';
 
 const DEFAULT_SECTIONS = [
   { section_key: 'hero_slides', section_name: 'Hero Carousel', is_visible: true, display_order: 0 },
@@ -163,8 +164,14 @@ const Home = () => {
 
   useEffect(() => {
     const fetchCategories = async () => {
-      const data = await cmsService.getCategories();
-      setCategories(data);
+      try {
+        const data = await cmsService.getCategories();
+        if (data && Array.isArray(data)) {
+          setCategories(data);
+        }
+      } catch (err) {
+        console.error('Error fetching categories:', err);
+      }
     };
     fetchCategories();
   }, []);
@@ -331,6 +338,33 @@ const Home = () => {
       }
     }, 100);
   };
+
+  if (loadingSections) {
+    return (
+      <div className="app-shell" id="app-shell">
+        <Navbar showSearch={false} />
+        <main className="home-main-layout" style={{ minHeight: '80vh', padding: '0 0 40px 0' }}>
+          <div className="skeleton-hero-container" style={{ padding: '0 4%', marginTop: '16px' }}>
+            <div className="skeleton-hero-card shimmer-dark" style={{ height: '480px', borderRadius: '24px' }} />
+          </div>
+          <div style={{ padding: '0 4%' }}>
+            <div className="skeleton-stats-bar shimmer-dark" style={{ height: '80px', borderRadius: '16px', marginTop: '24px' }} />
+          </div>
+          <div className="skeleton-categories-row" style={{ display: 'flex', gap: '16px', padding: '24px 6%', overflow: 'hidden', justifyContent: 'center' }}>
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="skeleton-category-card shimmer-dark" style={{ width: '160px', height: '180px', borderRadius: '16px', flexShrink: 0 }} />
+            ))}
+          </div>
+          <div className="skeleton-products-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: '20px', padding: '24px 6%' }}>
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="skeleton-product-card shimmer-dark" style={{ height: '360px', borderRadius: '16px' }} />
+            ))}
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="app-shell" id="app-shell">
@@ -576,9 +610,11 @@ const Home = () => {
             };
 
             return (
-              <SectionWrapper key={config.id || config.section_key} config={config}>
-                {renderSectionContent()}
-              </SectionWrapper>
+              <ErrorBoundary key={config.id || config.section_key} sectionKey={config.section_key} sectionName={config.section_name}>
+                <SectionWrapper config={config}>
+                  {renderSectionContent()}
+                </SectionWrapper>
+              </ErrorBoundary>
             );
           })}
       </main>

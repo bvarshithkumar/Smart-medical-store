@@ -26301,3 +26301,24 @@ body.modal-open {
     height: 36px !important;
   }
 }
+
+/* ── Premium Skeleton Loaders & Shimmer Animations ───────────── */
+.shimmer-dark {
+  background: linear-gradient(
+    90deg,
+    #0a101d 25%,
+    #121b2d 37%,
+    #0a101d 63%
+  ) !important;
+  background-size: 400% 100% !important;
+  animation: shimmerAnim 1.4s ease-in-out infinite !important;
+}
+
+@keyframes shimmerAnim {
+  0% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}

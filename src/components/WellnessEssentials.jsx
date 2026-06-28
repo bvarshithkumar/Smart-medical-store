@@ -4,6 +4,7 @@ import { useCart } from '../context/CartContext';
 import { Sparkles, ArrowRight, Heart, Stethoscope, TrendingUp, Zap, Award, Crown } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { mapProduct } from '../services/medicineService';
+import { cmsService } from '../services/cmsService';
 
 const getBadgeIcon = (key) => {
   switch (key) {
