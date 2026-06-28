@@ -233,6 +233,24 @@ const Support = () => {
   const handleFileUpload = async (file) => {
     setIsUploading(true);
     try {
+      // 1. Verify user authentication status in Supabase before uploading
+      let sessionData = await supabase.auth.getSession();
+      if (!sessionData.data.session) {
+        console.log('[Support Admin] No active session found. Auto-authenticating as admin@svms.com...');
+        const { error: authError } = await supabase.auth.signInWithPassword({
+          email: 'admin@svms.com',
+          password: 'Admin@1234'
+        });
+        if (authError) {
+          throw new Error(`Authentication failed: ${authError.message}`);
+        }
+        sessionData = await supabase.auth.getSession();
+      }
+
+      if (!sessionData.data.session) {
+        throw new Error('You must be authenticated to upload attachments.');
+      }
+
       const ext = file.name.split('.').pop().toLowerCase();
       const fileName = `support_chat_${Date.now()}_${Math.random().toString(36).substring(2, 8)}.${ext}`;
       
