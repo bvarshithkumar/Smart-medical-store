@@ -91,6 +91,21 @@ All layout, responsive columns, header/navbar, mobile admin panel, customer draw
   - Removed the `<FloatingWhatsApp />` component rendering instance from [`MedicineDetails.jsx`](file:///c:/Users/a%20sai%20sathwik/Downloads/rocking/src/pages/MedicineDetails.jsx).
   - Cleaned up the unused imports for `FloatingWhatsApp` inside [`Home.jsx`](file:///c:/Users/a%20sai%20sathwik/Downloads/rocking/src/pages/Home.jsx) and [`MedicineDetails.jsx`](file:///c:/Users/a%20sai%20sathwik/Downloads/rocking/src/pages/MedicineDetails.jsx).
 
+## Medicine Details Dynamic Image Gallery
+* **Root Cause & Gallery Audit:**
+  - The previous code had a hardcoded layout that always generated three identical image slides and thumbnails for medicines with only one image, resulting in redundant duplicates.
+* **Fixes & Adapting Logic Implemented:**
+  - **Dynamic `images` Parsing:** Programmed `mapProduct` inside [`medicineService.js`](file:///c:/Users/a%20sai%20sathwik/Downloads/rocking/src/services/medicineService.js) to dynamically parse the product's `image_url` string (splitting by comma or parsing JSON arrays) into a dedicated `images` array field.
+  - **1 Image Layout Adaptability:** If only one image is available, the gallery renders a single centered image. The thumbnails row, carousel swiping/touch gestures, and dots are completely hidden.
+  - **2 Images Layout Adaptability:** If exactly two images are available, the gallery displays exactly two slides and two thumbnails without placeholders or duplicates.
+  - **3+ Images Layout Adaptability:** If three or more images are available, the gallery enables the sliding carousel, swiping gestures, indicator dots, selected state highlights, and previous/next slide overlay navigation buttons.
+  - **0 Images (No Image Available):** If the medicine has no user-provided image, it displays a clean SVG medicine illustration with "No Image Available" text centered inside the box.
+  - **Aspect Ratio Control:** Used `object-fit: contain` styling to ensure boxes and bottles are not cropped.
+* **Verification Images:**
+  - **Single Image Centered Gallery:**
+    ![Zincovit Single Image Centered](/C:/Users/a%20sai%20sathwik/.gemini/antigravity-ide/brain/6afa076b-d33d-4846-b30d-4ed1717a2f27/zincovit_gallery_1782666094423.png)
+
+
 
 
 
