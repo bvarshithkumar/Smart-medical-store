@@ -44,3 +44,14 @@ All layout, responsive columns, header/navbar, mobile admin panel, customer draw
   - **Storefront Login Integration:** Configured background auth triggers inside [`LoginForm.jsx`](file:///c:/Users/a%20sai%20sathwik/Downloads/rocking/src/components/auth/LoginForm.jsx), [`Login.jsx`](file:///c:/Users/a%20sai%20sathwik/Downloads/rocking/src/pages/Login.jsx), and [`AdminAuthContext.jsx`](file:///c:/Users/a%20sai%20sathwik/Downloads/rocking/src/admin/context/AdminAuthContext.jsx) to sign the admin user in to Supabase in the background when logging in.
   - **Inline UI Error Indicators:** Replaced the default browser `alert()` popups with detailed red UI error indicators (`uploadError` rendering via Lucide `<AlertTriangle />`) inside the product creation and editing modals.
 
+## Medicine Search Suggestions Dropdown Layout and Thumbnail Image Fixes
+* **Root Cause Analysis:**
+  - **Dangling SVG Element:** The dropdown previously rendered an empty `div` with `dangerouslySetInnerHTML={{ __html: med.svg || med.svgColor1 }}`. Since the database products do not define any `svg` or `svgColor1` fields, the suggestions rendered empty boxes instead of medicine thumbnails.
+* **Fixes Implemented:**
+  - **Image Thumbnail Integration:** Replaced the SVG container with a styled HTML `<img />` tag inside [`SearchBar.jsx`](file:///c:/Users/a%20sai%20sathwik/Downloads/rocking/src/components/SearchBar.jsx) pointing directly to the product's valid database `med.image_url` property.
+  - **Auto-Log for Search Audits:** Added a console log outputting the `image_url` for every matched search result (`console.log('[Search] Found result:', med.name, 'image_url:', med.image_url)`).
+  - **Error Handlers & Professional Placeholders:** Configured an `onError` attribute handler on the `<img>` tag to catch broken links and replace them instantly with the default professional placeholder image (`/images/cat_medicines.png`).
+  - **Prescription Badging:** Added a styled red/amber `"Rx Required"` badge that displays next to the medicine name if `med.prescriptionRequired` evaluates to true.
+  - **Pack Size and Brand Layout:** Enhanced information typography to list the brand, pack size (`med.packInfo`), discounted price (`₹{med.priceDiscounted.toFixed(2)}`), and thumbnail consistently.
+
+
