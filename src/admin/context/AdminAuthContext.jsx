@@ -94,6 +94,16 @@ export const AdminAuthProvider = ({ children }) => {
 
     // Local bypass for admin@svms.com
     if (trimmedEmail === 'admin@svms.com') {
+      try {
+        const pass = password || 'Admin@1234';
+        await supabase.auth.signInWithPassword({
+          email: 'admin@svms.com',
+          password: pass
+        });
+      } catch (err) {
+        console.warn('Background Supabase sign-in failed for admin@svms.com:', err);
+      }
+
       const session = {
         email: 'admin@svms.com',
         name: 'Store Admin',

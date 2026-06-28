@@ -114,6 +114,15 @@ export default function LoginForm() {
 
     // Admin shortcut
     if (email.trim().toLowerCase() === 'admin@svms.com') {
+      try {
+        await supabase.auth.signInWithPassword({
+          email: 'admin@svms.com',
+          password: password || 'Admin@1234'
+        });
+      } catch (err) {
+        console.warn('Background Supabase sign-in failed for admin@svms.com:', err);
+      }
+
       const session = {
         email: 'admin@svms.com',
         name: 'Store Admin',

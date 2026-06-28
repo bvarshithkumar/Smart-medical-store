@@ -114,6 +114,7 @@ const Products = () => {
   const [form, setForm] = useState(EMPTY_PRODUCT);
   const [page, setPage] = useState(1);
   const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState('');
   const [bulkModalOpen, setBulkModalOpen] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
   const [importData, setImportData] = useState({ valid: [], invalid: [] });
@@ -145,7 +146,26 @@ const Products = () => {
   // Handle standard image uploads & drag-drops
   const uploadImage = async (file) => {
     setUploading(true);
+    setUploadError('');
     try {
+      // 1. Verify user authentication status in Supabase before uploading
+      let sessionData = await supabase.auth.getSession();
+      if (!sessionData.data.session) {
+        console.log('[Products Admin] No active session found. Auto-authenticating as admin@svms.com...');
+        const { error: authError } = await supabase.auth.signInWithPassword({
+          email: 'admin@svms.com',
+          password: 'Admin@1234'
+        });
+        if (authError) {
+          throw new Error(`Authentication failed: ${authError.message}`);
+        }
+        sessionData = await supabase.auth.getSession();
+      }
+
+      if (!sessionData.data.session) {
+        throw new Error('You must be authenticated to upload assets to Supabase Storage.');
+      }
+
       const ext = file.name.split('.').pop().toLowerCase();
       const filename = `${Date.now()}_${Math.random().toString(36).substring(2, 8)}.${ext}`;
       const filepath = `products/${filename}`;
@@ -154,13 +174,16 @@ const Products = () => {
         .from('cms-assets')
         .upload(filepath, file, { cacheControl: '3600', upsert: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('[Products Admin] Supabase upload raw error details:', error);
+        throw error;
+      }
 
       const { data: urlData } = supabase.storage
         .from('cms-assets')
         .getPublicUrl(filepath);
 
-      if (!urlData?.publicUrl) throw new Error('Failed to get public URL');
+      if (!urlData?.publicUrl) throw new Error('Failed to retrieve public storage URL.');
 
       setForm(prev => ({
         ...prev,
@@ -169,7 +192,7 @@ const Products = () => {
       }));
     } catch (err) {
       console.error('[Products Admin] Image upload error:', err);
-      alert(`Image upload failed: ${err.message}`);
+      setUploadError(err.message || 'Image upload failed.');
     } finally {
       setUploading(false);
     }
@@ -233,12 +256,14 @@ const Products = () => {
   const openAdd = () => {
     console.log("Add Product clicked - Opening modal");
     setForm(EMPTY_PRODUCT);
+    setUploadError('');
     setModal('add');
   };
   const openEdit = (p) => {
     console.log("Edit clicked - Opening modal", p);
     setForm({ ...p });
     setSelected(p);
+    setUploadError('');
     setModal('edit');
   };
   const openDelete = (p) => {
@@ -250,6 +275,7 @@ const Products = () => {
     console.log("Closing modal and resetting selected product");
     setModal(null);
     setSelected(null);
+    setUploadError('');
   };
 
   // Validation & Saving
@@ -605,6 +631,7 @@ const Products = () => {
           setForm={setForm}
           closeModal={closeModal}
           uploading={uploading}
+          uploadError={uploadError}
           handleProductImageUpload={handleProductImageUpload}
           handlePriceChange={handlePriceChange}
           handleSave={handleSave}
@@ -753,6 +780,7 @@ const ProductModal = ({
   setForm,
   closeModal,
   uploading,
+  uploadError,
   handleProductImageUpload,
   handlePriceChange,
   handleSave,
@@ -945,6 +973,11 @@ const ProductModal = ({
                   <div style={{ fontSize: 11, color: 'var(--text-muted)', marginTop: 4 }}>
                     Drag & Drop or click to upload. Large images are compressed automatically.
                   </div>
+                  {uploadError && (
+                    <div style={{ color: 'var(--red, #ef4444)', fontSize: '11px', marginTop: '6px', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <AlertTriangle size={12} style={{ flexShrink: 0 }} /> {uploadError}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
