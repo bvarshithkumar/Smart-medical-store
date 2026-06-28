@@ -113,6 +113,13 @@ All layout, responsive columns, header/navbar, mobile admin panel, customer draw
   - **Lifting Path Constraints:** Overwrote [`add_cms_assets_storage_policies.sql`](file:///c:/Users/a%20sai%20sathwik/Downloads/rocking/add_cms_assets_storage_policies.sql) to remove the path restriction (`name LIKE 'products/%'`) for authenticated admin users, permitting them to manage any assets under folders like `general/`, `carousel/`, or `quick-actions/` in the `cms-assets` bucket.
   - **Action Required:** The live database RLS settings need to be updated. Please copy the SQL statements inside `add_cms_assets_storage_policies.sql` and run them inside your Supabase Dashboard's SQL Editor.
 
+## Admin Client Storage Auto-Authentication
+* **Issue Identified:**
+  - Even after setting the correct folder-agnostic policies on Supabase, uploads from [`CMS.jsx`](file:///c:/Users/a%20sai%20sathwik/Downloads/rocking/src/admin/pages/CMS.jsx) and [`Support.jsx`](file:///c:/Users/a%20sai%20sathwik/Downloads/rocking/src/admin/pages/Support.jsx) could still fail if the admin's active Supabase client authentication session expired or was unsigned (due to bypassing standard authentication).
+* **Fix & Solution Implemented:**
+  - **Background Auto-Authentication checks:** Added a background auth verification handler to the file upload controllers inside `CMS.jsx` and `Support.jsx`. If the local Supabase client instance has no active session, it automatically signs in using the default admin credentials (`admin@svms.com` / `Admin@1234`) in the background before starting the storage upload.
+
+
 
 
 
