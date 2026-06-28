@@ -109,7 +109,7 @@ const SectionWrapper = ({ config, children }) => {
       style={sectionStyle} 
       className={wrapperClass}
       onClick={handleSectionClick}
-      id={config.section_key}
+      id={config.section_key === 'popular_medicines' ? 'popular-medicines' : config.section_key}
     >
       {children}
     </div>
