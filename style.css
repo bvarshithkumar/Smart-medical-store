@@ -11928,7 +11928,7 @@ footer,
 
 .wcu2-grid {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 14px;
 }
 
@@ -12333,8 +12333,20 @@ footer,
 
 .wcu2-grid {
   display: grid !important;
-  grid-template-columns: repeat(5, 1fr) !important;
+  grid-template-columns: repeat(3, 1fr) !important;
   gap: 14px !important;
+}
+
+@media (max-width: 1024px) {
+  .wcu2-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+@media (max-width: 680px) {
+  .wcu2-grid {
+    grid-template-columns: 1fr !important;
+  }
 }
 
 .wcu2-card {
