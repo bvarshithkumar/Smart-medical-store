@@ -161,6 +161,17 @@ All layout, responsive columns, header/navbar, mobile admin panel, customer draw
   - **Tab Rename:** Renamed the tab in [`CMS.jsx`](file:///c:/Users/a%20sai%20sathwik/Downloads/rocking/src/admin/pages/CMS.jsx) from `'Core Trust Pillars'` to `'Why Choose Us'`.
   - **Result:** The admin can now locate and edit the cards (Genuine Medicines, Expert Pharmacists, etc.) under the **Why Choose Us** tab in the sidebar, which successfully processes files and saves them to the `cms_why_choose_us` database table.
 
+## Why Choose Us 3x2 Grid Layout Alignment
+* **Issue Identified:**
+  - On desktop viewports, the trust pillars section rendered 5 columns in a row and wrapped the 6th card to the second row on its own, leaving a large asymmetry.
+* **Fix & Solution Implemented:**
+  - **Grid Alignment:** Modified [.wcu2-grid](file:///c:/Users/a%20sai%20sathwik/Downloads/rocking/style.css#L11929-L11933) and [.wcu2-grid override](file:///c:/Users/a%20sai%20sathwik/Downloads/rocking/style.css#L12334-L12350) columns to `repeat(3, 1fr)`.
+  - **Responsive Breakpoints:** Added tablet and mobile media query rules under the grid overrides (`repeat(2, 1fr)` for viewports under 1024px, and `1fr` for viewports under 680px) to guarantee premium scaling across all display widths.
+* **Verification Images:**
+  - **3x2 Grid layout verified:**
+    ![3x2 Grid layout](/C:/Users/a%20sai%20sathwik/.gemini/antigravity-ide/brain/6afa076b-d33d-4846-b30d-4ed1717a2f27/why_choose_us_1782705287946.png)
+
+
 
 
 
