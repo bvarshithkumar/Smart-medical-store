@@ -88,6 +88,7 @@ const SearchBar = ({ query: externalQuery, onChange: onExternalChange }) => {
             top: '50px', 
             left: 0, 
             right: 0, 
+            minWidth: '340px',
             backgroundColor: 'var(--bg-white)', 
             borderRadius: '16px',
             boxShadow: '0 10px 40px rgba(20, 184, 166, 0.12), 0 2px 10px rgba(0, 0, 0, 0.05)',
@@ -152,7 +153,7 @@ const SearchBar = ({ query: externalQuery, onChange: onExternalChange }) => {
                           }}
                         />
                       </div>
-                      <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ flex: 1, minWidth: '140px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
                           <span className="suggestion-text" style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '240px' }}>
                             {med.name}
