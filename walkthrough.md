@@ -189,6 +189,18 @@ All layout, responsive columns, header/navbar, mobile admin panel, customer draw
   - **Live Inventory and Products Updates:** Added realtime subscription inside [`Home.jsx`](file:///c:/Users/a%20sai%20sathwik/Downloads/rocking/src/pages/Home.jsx) to watch for changes to the `products` table and all CMS tables, auto-incrementing `cmsVersion` to force components to re-fetch updated data dynamically.
   - **Live Order & Reservation Status Tracking:** Added realtime subscription inside [`MyReservations.jsx`](file:///c:/Users/a%20sai%20sathwik/Downloads/rocking/src/pages/MyReservations.jsx) to update the customer's pickup list in the background instantly when orders are updated or cancelled.
 
+## Talk to Pharmacist Card Linkage to Chat Assistant
+* **Issue Identified:**
+  - Clicking the "Talk to Pharmacist" action card opened an intermediate modal with call/WhatsApp options, but it didn't activate or display the application's built-in live pharmacist chat assistant.
+* **Fix & Solution Implemented:**
+  - **Decoupled Custom Events:** Modified [`QuickActions.jsx`](file:///c:/Users/a%20sai%20sathwik/Downloads/rocking/src/components/QuickActions.jsx) click handler `handlePharmacistClick()` to dispatch a browser-level `open-pharmacist-chat` custom event.
+  - **Global Listener Hook:** Implemented a new listener inside [`FloatingPharmacist.jsx`](file:///c:/Users/a%20sai%20sathwik/Downloads/rocking/src/components/FloatingPharmacist.jsx) to catch this event and instantly transition `isOpen` to `true`.
+  - **Result:** Clicking the action card now seamlessly slides open the premium "Ask Pharmacist" widget in the bottom-right corner.
+* **Verification Images:**
+  - **Expanded Pharmacist Chat verified:**
+    ![Expanded Pharmacist Chat](/C:/Users/a%20sai%20sathwik/.gemini/antigravity-ide/brain/6afa076b-d33d-4846-b30d-4ed1717a2f27/pharmacist_chat_open_1782720654607.png)
+
+
 
 
 
