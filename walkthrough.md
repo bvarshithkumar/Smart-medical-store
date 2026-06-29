@@ -171,6 +171,17 @@ All layout, responsive columns, header/navbar, mobile admin panel, customer draw
   - **3x2 Grid layout verified:**
     ![3x2 Grid layout](/C:/Users/a%20sai%20sathwik/.gemini/antigravity-ide/brain/6afa076b-d33d-4846-b30d-4ed1717a2f27/why_choose_us_1782705287946.png)
 
+## Why Choose Us Card Size Reduction
+* **Issue Identified:**
+  - Because the cards are wider in a 3-column configuration, the `padding-top: 65%` image wrap rule made the images and the entire card layout excessively tall on desktop screens.
+* **Fix & Solution Implemented:**
+  - **Aspect Ratio Tweak:** Reduced the card image wrap aspect ratio to a cinematic `.wcu2-img-wrap { padding-top: 48% !important; }`.
+  - **Container Constraints:** Added `max-width: 1200px !important; margin: 0 auto !important;` to the grid container. This locks the cards to a premium, aligned width and centers the section beautifully, making the card sizes significantly smaller and more balanced.
+* **Verification Images:**
+  - **Compact 3x2 grid verified:**
+    ![Compact 3x2 grid](/C:/Users/a%20sai%20sathwik/.gemini/antigravity-ide/brain/6afa076b-d33d-4846-b30d-4ed1717a2f27/why_choose_us_compact_grid_1782705881003.png)
+
+
 
 
 
