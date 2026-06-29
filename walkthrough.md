@@ -181,6 +181,15 @@ All layout, responsive columns, header/navbar, mobile admin panel, customer draw
   - **Compact 3x2 grid verified:**
     ![Compact 3x2 grid](/C:/Users/a%20sai%20sathwik/.gemini/antigravity-ide/brain/6afa076b-d33d-4846-b30d-4ed1717a2f27/why_choose_us_compact_grid_1782705881003.png)
 
+## Supabase Real-time Notification System & CRUD Subscriptions
+* **Fix & Solution Implemented:**
+  - **Database Migration:** Created [`create_notifications_table.sql`](file:///c:/Users/a%20sai%20sathwik/Downloads/rocking/create_notifications_table.sql) to define the `notifications` table, setup RLS policies (broadcasting checks for admins and customers based on roles), automate alert insertion via Postgres triggers, and associate tables with the `supabase_realtime` publication.
+  - **Customer Notifications Context:** Updated [`NotificationContext.jsx`](file:///c:/Users/a%20sai%20sathwik/Downloads/rocking/src/context/NotificationContext.jsx) to query role-based (`role = 'customer'` or `'all'`) alerts in addition to personal ones, and removed hardcoded Postgres changes filter constraints so global alerts are broadcast instantly.
+  - **Admin Notifications Context:** Adjusted the `notifications-admin` realtime channel payload inspector inside [`AdminContext.jsx`](file:///c:/Users/a%20sai%20sathwik/Downloads/rocking/src/admin/context/AdminContext.jsx) to match `role === 'admin'` or `role === 'all'`.
+  - **Live Inventory and Products Updates:** Added realtime subscription inside [`Home.jsx`](file:///c:/Users/a%20sai%20sathwik/Downloads/rocking/src/pages/Home.jsx) to watch for changes to the `products` table and all CMS tables, auto-incrementing `cmsVersion` to force components to re-fetch updated data dynamically.
+  - **Live Order & Reservation Status Tracking:** Added realtime subscription inside [`MyReservations.jsx`](file:///c:/Users/a%20sai%20sathwik/Downloads/rocking/src/pages/MyReservations.jsx) to update the customer's pickup list in the background instantly when orders are updated or cancelled.
+
+
 
 
 
