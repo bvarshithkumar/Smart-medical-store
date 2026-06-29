@@ -200,6 +200,18 @@ All layout, responsive columns, header/navbar, mobile admin panel, customer draw
   - **Expanded Pharmacist Chat verified:**
     ![Expanded Pharmacist Chat](/C:/Users/a%20sai%20sathwik/.gemini/antigravity-ide/brain/6afa076b-d33d-4846-b30d-4ed1717a2f27/pharmacist_chat_open_1782720654607.png)
 
+## Search Suggestions Visibility & Layout Refinement
+* **Issue Identified:**
+  - On narrow screen widths (e.g. tablet, laptops, or window sizes where the search bar wrapper width is compressed), the flexbox container squeezed the middle text element (`flex: 1, minWidth: 0`) down to `0px` width. Combined with `whiteSpace: 'nowrap'` and `overflow: 'hidden'`, this made the medicine names and brands completely invisible.
+* **Fix & Solution Implemented:**
+  - **Suggestions Dropdown Constraint:** Added `minWidth: '340px'` to the absolute wrapper style in [`SearchBar.jsx`](file:///c:/Users/a%20sai%20sathwik/Downloads/rocking/src/components/SearchBar.jsx). This guarantees that the suggestions modal remains a readable width and doesn't get squeezed by a narrow search container.
+  - **Flex Item Minimum Width:** Modified the text container wrapper's inline style from `minWidth: 0` to `minWidth: '140px'` to prevent the flex container from squeezing the text columns to zero size.
+  - **Result:** Search suggestions render beautifully and text remains fully visible on all viewport sizes.
+* **Verification Images:**
+  - **Squeezed Search Suggestions verified:**
+    ![Squeezed Search Suggestions](/C:/Users/a%20sai%20sathwik/.gemini/antigravity-ide/brain/6afa076b-d33d-4846-b30d-4ed1717a2f27/squeezed_search_modal_1782725336085.png)
+
+
 
 
 
