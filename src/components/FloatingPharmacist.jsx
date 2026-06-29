@@ -115,6 +115,17 @@ const FloatingPharmacist = () => {
     }
   }, []);
 
+  /* Listen to open-pharmacist-chat events from other components */
+  useEffect(() => {
+    const handleOpenChat = () => {
+      setIsOpen(true);
+    };
+    window.addEventListener('open-pharmacist-chat', handleOpenChat);
+    return () => {
+      window.removeEventListener('open-pharmacist-chat', handleOpenChat);
+    };
+  }, []);
+
   /* Load unread count & listen to new replies in background */
   useEffect(() => {
     const fetchUnreadCount = async () => {

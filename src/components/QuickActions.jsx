@@ -105,7 +105,8 @@ const QuickActions = ({ config }) => {
   };
 
   const handlePharmacistClick = () => {
-    setIsPharmacistModalOpen(true);
+    const event = new CustomEvent('open-pharmacist-chat');
+    window.dispatchEvent(event);
   };
 
   const handleWhatsAppCta = () => {
