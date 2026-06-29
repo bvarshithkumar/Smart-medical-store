@@ -11930,6 +11930,8 @@ footer,
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 14px;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
 .wcu2-card {
@@ -11952,7 +11954,7 @@ footer,
 .wcu2-img-wrap {
   position: relative;
   width: 100%;
-  padding-top: 58%;
+  padding-top: 48%;
   overflow: hidden;
   background: #f1f5f9;
 }
@@ -12335,6 +12337,8 @@ footer,
   display: grid !important;
   grid-template-columns: repeat(3, 1fr) !important;
   gap: 14px !important;
+  max-width: 1200px !important;
+  margin: 0 auto !important;
 }
 
 @media (max-width: 1024px) {
@@ -12370,7 +12374,7 @@ footer,
 .wcu2-img-wrap {
   position: relative !important;
   width: 100% !important;
-  padding-top: 65% !important;
+  padding-top: 48% !important;
   overflow: hidden !important;
   background: #e8f5f4 !important;
 }
