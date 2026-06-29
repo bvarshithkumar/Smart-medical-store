@@ -43,7 +43,37 @@ const MyReservations = () => {
 
   useEffect(() => {
     fetchReservations();
-  }, [fetchReservations]);
+
+    if (!user) return;
+
+    // Realtime listener for customer pickup reservations
+    const resChannel = supabase
+      .channel(`customer-reservations-${user.id}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'pickup_reservations', filter: `user_id=eq.${user.id}` },
+        (payload) => {
+          console.log('[MyReservations] Realtime reservations change detected:', payload);
+          
+          // Fetch updated data silently in the background
+          supabase
+            .from('pickup_reservations')
+            .select('*')
+            .eq('user_id', user.id)
+            .order('created_at', { ascending: false })
+            .then(({ data, error }) => {
+              if (!error && data) {
+                setReservations(data);
+              }
+            });
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(resChannel);
+    };
+  }, [user, fetchReservations]);
 
   const cancelReservation = useCallback(async (res) => {
     if (!window.confirm(`Cancel reservation ${res.reservation_id}? This action cannot be undone.`)) return;

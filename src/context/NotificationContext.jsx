@@ -21,7 +21,7 @@ export const NotificationProvider = ({ children }) => {
       const { data, error } = await supabase
         .from('notifications')
         .select('*')
-        .eq('user_id', supabaseUser.id)
+        .or(`user_id.eq.${supabaseUser.id},role.eq.customer,role.eq.all`)
         .order('created_at', { ascending: false });
 
       if (!error && data) {
@@ -46,7 +46,7 @@ export const NotificationProvider = ({ children }) => {
 
     if (!supabaseUser) return;
 
-    // Listen to real-time insertions/updates to the notifications table for this user
+    // Listen to real-time insertions/updates to the notifications table for this user and customer roles
     const channel = supabase
       .channel(`user-notifications-${supabaseUser.id}`)
       .on(
@@ -54,8 +54,7 @@ export const NotificationProvider = ({ children }) => {
         {
           event: '*',
           schema: 'public',
-          table: 'notifications',
-          filter: `user_id=eq.${supabaseUser.id}`
+          table: 'notifications'
         },
         (payload) => {
           console.log('[NotificationContext] Realtime notification update:', payload);
@@ -63,12 +62,15 @@ export const NotificationProvider = ({ children }) => {
 
           if (payload.eventType === 'INSERT') {
             const n = payload.new;
-            setActiveToast({
-              id: n.id,
-              title: n.title,
-              message: n.message,
-              type: n.type || 'general'
-            });
+            // Check if the notification is targeted for this user, customer role, or all
+            if (n.user_id === supabaseUser.id || n.role === 'customer' || n.role === 'all') {
+              setActiveToast({
+                id: n.id,
+                title: n.title,
+                message: n.message,
+                type: n.type || 'general'
+              });
+            }
           }
         }
       )

@@ -452,8 +452,8 @@ export const AdminProvider = ({ children }) => {
           
           if (payload.eventType === 'INSERT') {
             const noti = payload.new;
-            // Check if user_id is null (means sent to admin)
-            if (noti.user_id === null) {
+            // Check if it is sent to admin (user_id is null, or role is admin or all)
+            if (noti.user_id === null || noti.role === 'admin' || noti.role === 'all') {
               addAdminToast(`🔔 ${noti.title}: ${noti.message}`, 'info', noti.related_id || noti.prescription_id || 'general');
               
               if ('Notification' in window && Notification.permission === 'granted') {

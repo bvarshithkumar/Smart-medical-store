@@ -126,6 +126,7 @@ const Home = () => {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [sections, setSections] = useState([]);
   const [loadingSections, setLoadingSections] = useState(true);
+  const [cmsVersion, setCmsVersion] = useState(0);
 
   const { showToast } = useCart();
   const location = useLocation();
@@ -205,6 +206,46 @@ const Home = () => {
 
   useEffect(() => {
     fetchProducts();
+
+    // 1. Subscribe to products table to update popular medicines list live
+    const prodChannel = supabase
+      .channel('public-products-realtime')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'products' },
+        (payload) => {
+          console.log('[Home] Realtime products change:', payload);
+          fetchProducts();
+          setCmsVersion(prev => prev + 1);
+        }
+      )
+      .subscribe();
+
+    // 2. Subscribe to various CMS tables to update sections live
+    const cmsTables = [
+      'cms_hero', 'cms_quick_actions', 'cms_categories',
+      'cms_offers', 'cms_health_concerns', 'cms_why_choose_us',
+      'cms_testimonials', 'cms_tips'
+    ];
+
+    const channels = cmsTables.map(table => {
+      return supabase
+        .channel(`public-${table}-realtime`)
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table },
+          (payload) => {
+            console.log(`[Home] Realtime CMS change in ${table}:`, payload);
+            setCmsVersion(prev => prev + 1);
+          }
+        )
+        .subscribe();
+    });
+
+    return () => {
+      supabase.removeChannel(prodChannel);
+      channels.forEach(ch => supabase.removeChannel(ch));
+    };
   }, []);
 
   // Filter medicines by category and search query
@@ -609,7 +650,7 @@ const Home = () => {
             };
 
             return (
-              <ErrorBoundary key={config.id || config.section_key} sectionKey={config.section_key} sectionName={config.section_name}>
+              <ErrorBoundary key={`${config.id || config.section_key}-${cmsVersion}`} sectionKey={config.section_key} sectionName={config.section_name}>
                 <SectionWrapper config={config}>
                   {renderSectionContent()}
                 </SectionWrapper>
